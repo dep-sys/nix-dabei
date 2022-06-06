@@ -60,17 +60,21 @@ in
     '';
     "service/sshd/run".source = pkgs.writeScript "sshd_run" ''
       #!/bin/sh
-      ${pkgs.openssh}/bin/sshd -f ${sshd_config}
+      exec ${pkgs.openssh}/bin/sshd -f ${sshd_config} -D
     '';
     "service/rngd/run".source = pkgs.writeScript "rngd" ''
       #!/bin/sh
-      export PATH=$PATH:${pkgs.rng-tools}/bin
-      exec rngd -r /dev/hwrng
+      exec ${pkgs.rng-tools}/bin/rngd -f
     '';
     "service/nix/run".source = pkgs.writeScript "nix" ''
       #!/bin/sh
       nix-store --load-db < /nix/store/nix-path-registration
       nix-daemon
     '';
+#    "service/shell/run".source = pkgs.writeScript "shell" ''
+#      #!/bin/sh
+#      exec ${pkgs.utillinux}/bin/setsid sh -c 'exec sh <> /dev/ttyS0 >&0 2>&1'
+#    '';
+
   };
 }
