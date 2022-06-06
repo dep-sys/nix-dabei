@@ -81,7 +81,7 @@ with lib;
         hosts:     files  dns   myhostname mymachines
         networks:  files dns
       '';
-      "services".source = pkgs.iana_etc + "/etc/services";
+      "services".source = pkgs.iana-etc + "/etc/services";
       group.text = ''
         root:x:0:
         nixbld:x:30000:nixbld1,nixbld10,nixbld2,nixbld3,nixbld4,nixbld5,nixbld6,nixbld7,nixbld8,nixbld9
