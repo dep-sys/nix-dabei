@@ -56,8 +56,7 @@ with lib;
         build-use-sandbox = true
         build-users-group = nixbld
         build-sandbox-paths = /bin/sh=${pkgs.stdenv.shell} $(echo $extraPaths)
-        build-max-jobs = 1
-        build-cores = 4
+        experimental-features = nix-command flakes
         EOF
       '';
       bashrc.text = "export PATH=/run/current-system/sw/bin";

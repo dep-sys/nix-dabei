@@ -5,7 +5,7 @@
 with lib;
 
 let
-  requiredPackages = with pkgs; [ utillinux coreutils iproute iputils procps curl bashInteractive runit ];
+  requiredPackages = with pkgs; [ utillinux coreutils iproute iputils procps curl gitMinimal bashInteractive runit ];
 in
 {
   options = {
@@ -39,9 +39,6 @@ in
       name = "system-path";
       paths = config.environment.systemPackages;
       inherit (config.environment) pathsToLink extraOutputsToInstall;
-      postBuild = ''
-        # TODO, any system level caches that need to regenerate
-      '';
     };
   };
 }

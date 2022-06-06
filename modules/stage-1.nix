@@ -130,12 +130,6 @@ let
     fi
     chmod 755 /mnt/
     mkdir -p /mnt/nix/store/
-
-    
-      cat /proc/partitions
-      lsblk
-      lspci
-      lsmod
     ${if config.not-os.nix then ''
     # make the store writeable
     mkdir -p /mnt/nix/.ro-store /mnt/nix/.overlay-store /mnt/nix/store
@@ -174,6 +168,6 @@ in
     system.build.initialRamdisk = initialRamdisk;
     system.build.extraUtils = extraUtils;
     boot.initrd.availableKernelModules = [ ];
-    boot.initrd.kernelModules = [ "tun" "loop" "squashfs" ] ++ (lib.optional config.not-os.nix "overlay");
+    boot.initrd.kernelModules = ["loop" "squashfs" ] ++ (lib.optional config.not-os.nix "overlay");
   };
 }
