@@ -14,7 +14,7 @@
         ./modules/stage-1.nix
         ./modules/stage-2.nix
         ./modules/runit.nix
-        (nixpkgs + "/nixos/modules/system/etc/etc.nix")
+        (nixpkgs + "/nixos/modules/system/etc/etc-activation.nix")
         (nixpkgs + "/nixos/modules/system/activation/activation-script.nix")
         (nixpkgs + "/nixos/modules/misc/nixpkgs.nix")
         (nixpkgs + "/nixos/modules/system/boot/kernel.nix")
