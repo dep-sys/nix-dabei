@@ -24,14 +24,16 @@
         ./modules/systemd-compat.nix
         ({ ... }: {
           config.nixpkgs.localSystem = { inherit system; };
+          config._module = {
+            args = {};
+            check = true;
+          };
         })
       ];
 
       evalConfig = modules: pkgs.lib.evalModules {
         prefix = [];
-        check = true;
         modules = modules ++ baseModules;
-        args = {};
       };
     in {
       packages.${system} = rec {
