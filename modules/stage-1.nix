@@ -8,19 +8,6 @@ let
     kernel = config.system.build.kernel;
     firmware = config.hardware.firmware;
   };
-  plymouth = (pkgs.plymouth.override {
-    udev = null;
-    gtk3 = null;
-    systemd = null;
-  }).overrideDerivation (old: {
-    #src = /tmp/plymouth;
-    src = pkgs.fetchgit {
-      url = "https://anongit.freedesktop.org/git/plymouth";
-      rev = "266d954b7a0ff5b046df6ed54c22e3322b2c80d0";
-      sha256 = "10k7vfbfp3q1ysw3w5nd6wnixizbng3lqbb21bgd18v997k74xb3";
-    };
-    #patches2 = [ ./fix2.patch ./udev3.patch ];
-  });
   dhcpcd = pkgs.dhcpcd.override { udev = null; };
   extraUtils = pkgs.runCommandCC "extra-utils"
   {
@@ -85,7 +72,6 @@ let
     $out/bin/mount --help 2>&1 | grep -q "BusyBox"
   '';
   shell = "${extraUtils}/bin/ash";
-  enablePlymouth = false;
   dhcpHook = pkgs.writeScript "dhcpHook" ''
   #!${shell}
   '';
@@ -95,28 +81,14 @@ let
     echo "[1;32m<<< NotOS Stage 1 >>>[0m"
     echo
 
-    export PATH=${extraUtils}/bin/${lib.optionalString enablePlymouth ":${plymouth}/bin/"}
-    mkdir -p /proc /sys /dev /etc/udev /tmp /run/ /lib/ /mnt/ /var/log /etc/plymouth /bin
+    export PATH=${extraUtils}/bin/
+    mkdir -p /proc /sys /dev /etc/udev /tmp /run/ /lib/ /mnt/ /var/log /bin
     mount -t devtmpfs devtmpfs /dev/
     mount -t proc proc /proc
     mount -t sysfs sysfs /sys
 
-    ${lib.optionalString enablePlymouth ''
-    ln -sv ${plymouth}/lib/plymouth /etc/plymouth/plugins
-    ln -sv ${plymouth}/etc/plymouth/plymouthd.conf /etc/plymouth/plymouthd.conf
-    ln -sv ${plymouth}/share/plymouth/plymouthd.defaults /etc/plymouth//plymouthd.defaults
-    ln -sv ${plymouth}/share/plymouth/themes /etc/plymouth/themes
-    ln -sv /dev/fb0 /dev/fb
-    ''}
     ln -sv ${shell} /bin/sh
     ln -s ${modules}/lib/modules /lib/modules
-
-    ${lib.optionalString enablePlymouth ''
-    # gdb --args plymouthd --debug --mode=boot --no-daemon
-    sleep 1
-    plymouth --show-splash
-    ''}
-
 
     for x in ${lib.concatStringsSep " " config.boot.initrd.kernelModules}; do
       modprobe $x
@@ -137,11 +109,8 @@ let
         netroot=*)
           set -- $(IFS==; echo $o)
           mkdir -pv /var/run /var/db
-          ${lib.optionalString enablePlymouth ''plymouth display-message --text="waiting for eth"''}
           sleep 5
-          ${lib.optionalString enablePlymouth ''plymouth display-message --text="dhcp query"''}
           dhcpcd eth0 -c ${dhcpHook}
-          ${lib.optionalString enablePlymouth ''plymouth display-message --text="downloading rootfs"''}
           tftp -g -r "$3" "$2"
           root=/root.squashfs
           ;;
@@ -151,8 +120,6 @@ let
           ;;
       esac
     done
-
-    ${lib.optionalString enablePlymouth ''plymouth display-message --text="mounting things"''}
 
     ${config.not-os.preMount}
     if [ $realroot = tmpfs ]; then
@@ -181,11 +148,6 @@ let
     '' else ''
     # readonly store
     mount $root /mnt/nix/store/ -t squashfs
-    ''}
-
-    ${lib.optionalString enablePlymouth ''
-    plymouth --newroot=/mnt
-    plymouth update-root-fs --new-root-dir=/mnt --read-write
     ''}
 
     exec env -i $(type -P switch_root) /mnt/ $sysconfig/init
