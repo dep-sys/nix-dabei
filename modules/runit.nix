@@ -29,11 +29,16 @@ in
   environment.etc = {
     "runit/1".source = pkgs.writeScript "1" ''
       #!${pkgs.stdenv.shell}
-      ${lib.optionalString config.not-os.simpleStaticIp ''
+      ${if config.not-os.simpleStaticIp then ''
       ip addr add 10.0.2.15 dev eth0
       ip link set eth0 up
       ip route add 10.0.2.0/24 dev eth0
       ip  route add default via 10.0.2.2 dev eth0
+      '' else ''
+      touch /etc/dhcpcd.conf
+      mkdir -p /var/db/dhcpcd /var/run/dhcpcd
+      ip link set up eth0
+      ${pkgs.dhcpcd}/sbin/dhcpcd eth0 -4 --waitip
       ''}
       mkdir /bin/
       ln -s ${pkgs.stdenv.shell} /bin/sh
@@ -47,7 +52,6 @@ in
 
       touch /etc/runit/stopit
       chmod 0 /etc/runit/stopit
-      ${if true then "" else "${pkgs.dhcpcd}/sbin/dhcpcd"}
     '';
     "runit/2".source = pkgs.writeScript "2" ''
       #!/bin/sh
