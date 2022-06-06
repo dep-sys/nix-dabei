@@ -46,6 +46,7 @@ with lib;
       packageOverrides = self: {
         utillinux = self.utillinux.override { systemd = null; systemdSupport = false; };
         dhcpcd = self.dhcpcd.override { udev = null; };
+         openssh = self.openssh.override { withFIDO = false; withKerberos = false; };
       };
     };
     environment.etc = {
