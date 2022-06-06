@@ -42,13 +42,6 @@ with lib;
   };
   config = {
     environment.systemPackages = lib.optional config.not-os.nix pkgs.nix;
-    nixpkgs.config = {
-      packageOverrides = self: {
-        utillinux = self.utillinux.override { systemd = null; systemdSupport = false; };
-        dhcpcd = self.dhcpcd.override { udev = null; };
-         openssh = self.openssh.override { withFIDO = false; withKerberos = false; };
-      };
-    };
     environment.etc = {
       "nix/nix.conf".source = pkgs.runCommand "nix.conf" {} ''
         extraPaths=$(for i in $(cat ${pkgs.writeReferencesToFile pkgs.stdenv.shell}); do if test -d $i; then echo $i; fi; done)
