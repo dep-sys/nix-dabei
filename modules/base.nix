@@ -65,8 +65,7 @@ with lib;
       "resolv.conf".text = "nameserver 10.0.2.3";
       passwd.text = ''
         root:x:0:0:System administrator:/root:/run/current-system/sw/bin/bash
-        sshd:x:498:65534:SSH privilege separation user:/var/empty:/run/current-system/sw/bin/nologin
-        toxvpn:x:1010:65534::/var/lib/toxvpn:/run/current-system/sw/bin/nologin
+        sshd:x:999:998:SSH privilege separation user:/var/empty:/run/current-system/sw/bin/nologin
         nixbld1:x:30001:30000:Nix build user 1:/var/empty:/run/current-system/sw/bin/nologin
         nixbld2:x:30002:30000:Nix build user 2:/var/empty:/run/current-system/sw/bin/nologin
         nixbld3:x:30003:30000:Nix build user 3:/var/empty:/run/current-system/sw/bin/nologin
