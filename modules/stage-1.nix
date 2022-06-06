@@ -29,6 +29,7 @@ let
     done
 
     copy_bin_and_libs ${pkgs.dhcpcd}/bin/dhcpcd
+    copy_bin_and_libs ${pkgs.utillinux}/bin/lsblk
 
     # Copy ld manually since it isn't detected correctly
     cp -pv ${pkgs.glibc.out}/lib/ld*.so.? $out/lib
