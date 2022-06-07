@@ -5,7 +5,8 @@
 with lib;
 
 let
-  requiredPackages = with pkgs; [ utillinux coreutils iproute iputils procps curl gitMinimal bashInteractive runit ];
+  requiredPackages = with pkgs; [ utillinux coreutils iproute iputils procps bash runit ];
+  # curl gitMinimal bashInteractive
 in
 {
   options = {
