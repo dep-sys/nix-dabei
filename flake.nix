@@ -42,7 +42,12 @@
         libusb = prev.libusb.override { enableUdev = false; };
         rng-tools = prev.rng-tools.override { withPkcs11 = false; withRtlsdr = false; };
         openssh = prev.openssh.override { withFIDO = false; withKerberos = false; };
-
+        gitMicro = (prev.gitMinimal.override {
+          perlSupport = false;
+          withManual = false;
+          pythonSupport = false;
+          withpcre2 = false;
+        }).overrideAttrs (oldAttrs: { doInstallCheck = false; });
       };
 
       packages.${system} = rec {
