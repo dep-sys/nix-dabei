@@ -7,25 +7,27 @@
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; overlays = [ self.overlay ]; };
       baseModules = [
-        ./modules/compat.nix
         ./modules/environment.nix
         ./modules/base.nix
+        ./modules/runit.nix
         ./modules/stage-1.nix
         ./modules/stage-2.nix
-        ./modules/runit.nix
-        (nixpkgs + "/nixos/modules/system/etc/etc-activation.nix")
-        (nixpkgs + "/nixos/modules/system/activation/activation-script.nix")
-        (nixpkgs + "/nixos/modules/misc/nixpkgs.nix")
-        (nixpkgs + "/nixos/modules/system/boot/kernel.nix")
-        (nixpkgs + "/nixos/modules/misc/assertions.nix")
-        (nixpkgs + "/nixos/modules/misc/lib.nix")
-        (nixpkgs + "/nixos/modules/config/sysctl.nix")
-        ({ ... }: {
+        ./modules/compat.nix
+        {
+          imports = [
+            "${nixpkgs}/nixos/modules/system/etc/etc-activation.nix"
+            "${nixpkgs}/nixos/modules/system/activation/activation-script.nix"
+            "${nixpkgs}/nixos/modules/misc/nixpkgs.nix"
+            "${nixpkgs}/nixos/modules/system/boot/kernel.nix"
+            "${nixpkgs}/nixos/modules/misc/assertions.nix"
+            "${nixpkgs}/nixos/modules/misc/lib.nix"
+            "${nixpkgs}/nixos/modules/config/sysctl.nix"
+          ];
           config.nixpkgs = {
             inherit pkgs;
             localSystem = { inherit system; };
           };
-        })
+        }
       ];
 
       evalConfig = modules: pkgs.lib.evalModules {
