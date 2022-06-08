@@ -20,11 +20,13 @@ in
     "runit/1".source = pkgs.writeScript "1" ''
       #!${pkgs.stdenv.shell}
       ${if config.nix-dabei.simpleStaticIp then ''
+      echo "configuring static ip 10.0.2.15"
       ip addr add 10.0.2.15 dev eth0
       ip link set eth0 up
       ip route add 10.0.2.0/24 dev eth0
       ip  route add default via 10.0.2.2 dev eth0
       '' else ''
+      echo "configuring dhcp"
       touch /etc/dhcpcd.conf
       mkdir -p /var/db/dhcpcd /var/run/dhcpcd
       ip link set up eth0
@@ -34,6 +36,7 @@ in
       ln -s ${pkgs.stdenv.shell} /bin/sh
 
       ${lib.optionalString (config.networking.timeServers != []) ''
+        echo "updating time"
         ${pkgs.ntp}/bin/ntpdate ${toString config.networking.timeServers}
       ''}
 

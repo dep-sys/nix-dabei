@@ -77,6 +77,8 @@ let
     echo "[1;32m<<< Nix-Dabei Stage 1 >>>[0m"
     echo
 
+
+    echo -e "\e[1;32m> paths\e[0m"
     export PATH=${extraUtils}/bin/
     mkdir -p /proc /sys /dev /etc/udev /tmp /run/ /lib/ /mnt/ /var/log /bin
     mount -t devtmpfs devtmpfs /dev/
@@ -86,6 +88,7 @@ let
     ln -sv ${shell} /bin/sh
     ln -s ${modules}/lib/modules /lib/modules
 
+    echo -e "\e[1;32m> kernel modules\e[0m"
     for x in ${lib.concatStringsSep " " config.boot.initrd.kernelModules}; do
       modprobe $x
     done
@@ -113,6 +116,10 @@ let
       esac
     done
 
+    echo "> root: $root"
+    echo "> realroot: $realroot"
+
+    echo -e "\e[1;32m> mounts\e[0m"
     ${config.nix-dabei.preMount}
     if [ $realroot = tmpfs ]; then
       mount -t tmpfs root /mnt/ -o size=1G || exec ${shell}
@@ -121,21 +128,23 @@ let
     fi
     chmod 755 /mnt/
     mkdir -p /mnt/nix/store/
+
     ${if config.nix-dabei.nix then ''
-    # make the store writeable
+    echo -e "\e[1;32m> writable store\e[0m"
     mkdir -p /mnt/nix/.ro-store /mnt/nix/.overlay-store /mnt/nix/store
     mount $root /mnt/nix/.ro-store -t squashfs
     if [ $realroot = $1 ]; then
       mount tmpfs -t tmpfs /mnt/nix/.overlay-store -o size=1G
     fi
-    mkdir -pv /mnt/nix/.overlay-store/work /mnt/nix/.overlay-store/rw
+    mkdir -p /mnt/nix/.overlay-store/work /mnt/nix/.overlay-store/rw
     modprobe overlay
     mount -t overlay overlay -o lowerdir=/mnt/nix/.ro-store,upperdir=/mnt/nix/.overlay-store/rw,workdir=/mnt/nix/.overlay-store/work /mnt/nix/store
     '' else ''
-    # readonly store
+    echo -e "\e[1;32m> read-only store\e[0m"
     mount $root /mnt/nix/store/ -t squashfs
     ''}
 
+    echo -e "\e[1;32m> switch root\e[0m"
     exec env -i $(type -P switch_root) /mnt/ $sysconfig/init
     exec ${shell}
   '';

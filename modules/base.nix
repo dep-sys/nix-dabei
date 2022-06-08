@@ -1,17 +1,17 @@
 { pkgs, config, lib, ... }:
 
 with lib;
-
+let cfg = config.nix-dabei;
+in
 {
   options.nix-dabei = {
-    nix = mkOption {
-      type = types.bool;
+    nix = mkEnableOption {
+      default = true;
       description = "Enable nix-daemon and a writeable store.";
     };
-    simpleStaticIp = mkOption {
-      type = types.bool;
+    simpleStaticIp = mkEnableOption {
       default = false;
-      description = "set a static ip of 10.0.2.15";
+      description = "set a static ip of 10.0.2.15, else use dhcp";
     };
     preMount = mkOption {
       type = types.lines;
