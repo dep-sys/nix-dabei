@@ -6,30 +6,8 @@
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; overlays = [ self.overlay ]; };
-      baseModules = [
-        ./modules/environment.nix
-        ./modules/base.nix
-        ./modules/runit.nix
-        ./modules/stage-1.nix
-        ./modules/stage-2.nix
-        ./modules/compat.nix
-        {
-          imports = [
-            "${nixpkgs}/nixos/modules/system/etc/etc-activation.nix"
-            "${nixpkgs}/nixos/modules/system/activation/activation-script.nix"
-            "${nixpkgs}/nixos/modules/misc/nixpkgs.nix"
-            "${nixpkgs}/nixos/modules/system/boot/kernel.nix"
-            "${nixpkgs}/nixos/modules/misc/assertions.nix"
-            "${nixpkgs}/nixos/modules/misc/lib.nix"
-            "${nixpkgs}/nixos/modules/config/sysctl.nix"
-            "${nixpkgs}/nixos/modules/security/ca.nix"
-          ];
-          config.nixpkgs = {
-            inherit pkgs;
-            localSystem = { inherit system; };
-          };
-        }
-      ];
+      lib = nixpkgs.lib;
+      baseModules = builtins.attrValues self.nixosModules;
 
       evalConfig = modules: pkgs.lib.evalModules {
         prefix = [];
@@ -58,6 +36,31 @@
       };
       defaultPackage.${system} = self.packages.${system}.runvm;
 
-      nixosModules = {};
+      nixosModules = {
+        environment = ./modules/environment.nix;
+        base = ./modules/base.nix;
+        runit = ./modules/runit.nix;
+        stage-1 = ./modules/stage-1.nix;
+        stage-2 = ./modules/stage-2.nix;
+        compat = ./modules/compat.nix;
+        upstream = {
+          imports = [
+            "${nixpkgs}/nixos/modules/system/etc/etc-activation.nix"
+            "${nixpkgs}/nixos/modules/system/activation/activation-script.nix"
+            "${nixpkgs}/nixos/modules/misc/nixpkgs.nix"
+            "${nixpkgs}/nixos/modules/system/boot/kernel.nix"
+            "${nixpkgs}/nixos/modules/misc/assertions.nix"
+            "${nixpkgs}/nixos/modules/misc/lib.nix"
+            "${nixpkgs}/nixos/modules/config/sysctl.nix"
+            "${nixpkgs}/nixos/modules/security/ca.nix"
+          ];
+        };
+        nixpkgs = {
+          config.nixpkgs = {
+            inherit pkgs;
+            localSystem = { inherit system; };
+          };
+        };
+      };
     };
 }
