@@ -1,7 +1,18 @@
 { config, lib, pkgs, ... }:
 {
   config = {
-    environment.systemPackages = with pkgs; [ utillinux coreutils iproute iputils procps bashInteractive runit gitMicro curl ];
+    environment.systemPackages = with pkgs; [
+      utillinux
+      coreutils
+      iproute
+      iputils
+      procps
+      bashInteractive
+      runit
+      gitMicro
+      curl
+    ];
+
     environment.pathsToLink = [ "/bin" ];
     system.path = pkgs.buildEnv {
       name = "system-path";

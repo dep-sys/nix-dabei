@@ -22,6 +22,7 @@
             "${nixpkgs}/nixos/modules/misc/assertions.nix"
             "${nixpkgs}/nixos/modules/misc/lib.nix"
             "${nixpkgs}/nixos/modules/config/sysctl.nix"
+            "${nixpkgs}/nixos/modules/security/ca.nix"
           ];
           config.nixpkgs = {
             inherit pkgs;
