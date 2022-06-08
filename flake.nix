@@ -6,13 +6,6 @@
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; overlays = [ self.overlay ]; };
-      lib = nixpkgs.lib;
-      baseModules = builtins.attrValues self.nixosModules;
-
-      evalConfig = modules: pkgs.lib.evalModules {
-        prefix = [];
-        modules = modules ++ baseModules;
-      };
     in {
       overlay = _final: prev: {
         procps = prev.procps.override { withSystemd = false; };
@@ -29,10 +22,25 @@
         }).overrideAttrs (oldAttrs: { doInstallCheck = false; });
       };
 
-      packages.${system} = let
-        config = (evalConfig [ ./configuration.nix ]).config;
+      lib.makeDocs = import ./lib/makeDocs.nix;
+
+      packages.${system} =
+        with pkgs;
+        let
+          nixosConfiguration = lib.evalModules {
+            modules = [ ./configuration.nix ] ++ lib.attrValues self.nixosModules;
+          };
+
+          docs = self.lib.makeDocs {
+            inherit pkgs;
+            modules = (builtins.attrValues self.nixosModules);
+            # Only document options which are declared inside this flake.
+            filter = (name: opt: lib.any (d: lib.hasPrefix "${self}/modules/" d) opt.declarations);
+        };
       in {
-        inherit (config.system.build) runvm dist toplevel squashfs;
+        inherit (nixosConfiguration.config.system.build) runvm dist toplevel squashfs;
+        # TODO: app for `cp -L --no-preserve=mode result/options.md options.md`
+        docs = docs.all;
       };
       defaultPackage.${system} = self.packages.${system}.runvm;
 
