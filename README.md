@@ -5,6 +5,8 @@ An **experimental** operating system generator heavily based on [not-os][], whic
 It generates a relatively small linux kernel, init ramdisk and squashfs image. Those can be booted from memory, without touching local disks.
 This is useful for various setup and recovery tasks, such as installing NixOS on a remote machine.
 
+While it's very early in development and major features such as kexec and zfs support are yet missing, it's at a stage where it might be interesting to NixOS developers. There's a binary cache at [cachix: nix-dabei](https://app.cachix.org/cache/nix-dabei).
+
 # Motivation / Why?
 
 I was looking for a generic way to install NixOS systems from [flakes][] on (possibly) remote systems, while still being able to use alternative file systems like [zfs][]. Installing NixOS from i.e. Hetzners rescue system works, but means that one is limited to features supported by Hetzners rescue kernel. While they do support zfs specifically, the installer compiles the module from source in the rescue system. This takes a lot of time and becomes annoying quickly if one tries to deploy multiple machines. Additionally, a mismatch between zfs versions and features between Hetzners kernel and NixOS is likely.
@@ -19,8 +21,6 @@ Contributions welcome! :tada:
 * TODO: those should be migrated into github issues, whenever discussion is needed * implement & document kexec * check why perl seems to be incldued in toplevel? 
 * remove vendored netboot and filesystems.nix (two small patches)
 * add vm options submodule (and more ram)
-* setup github ci
-* setup cachix cache ci
 * finish kexec
 * include zfs kernel and runtime
 * write {read,write}-info.sh for hetzner
