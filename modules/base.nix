@@ -29,7 +29,7 @@ in
     system.build.runvm = pkgs.writeScript "runner" ''
       #!${pkgs.stdenv.shell}
       exec ${pkgs.qemu_kvm}/bin/qemu-kvm -name nix-dabei -m 512 \
-        -kernel ${config.system.build.kernel}/bzImage -initrd ${config.system.build.initialRamdisk}/initrd -nographic \
+        -kernel ${config.system.build.kernel}/bzImage -initrd ${config.system.build.netbootRamdisk}/initrd -nographic \
         -append "console=ttyS0 ${toString config.boot.kernelParams} quiet panic=-1" -no-reboot \
         -net nic,model=virtio \
         -net user,net=10.0.2.0/24,host=10.0.2.2,dns=10.0.2.3,hostfwd=tcp::2222-:22 \
