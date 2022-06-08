@@ -3,7 +3,7 @@
   boot.initrd.kernelModules = [ "virtio" "virtio_pci" "virtio_net" "virtio_rng" "virtio_blk" "virtio_console" ];
   nix-dabei.nix = true;
   nix-dabei.simpleStaticIp = true;
-  networking.nameservers = ["1.1.1.1"];
+  networking.nameservers = [ "1.1.1.1" ];
   environment.systemPackages = [ pkgs.utillinux ];
   environment.etc = {
     "ssh/authorized_keys.d/root" = {

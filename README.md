@@ -61,7 +61,7 @@ My [first experiment][nixos-zfs-installer] used `system.build.netbootRamdisk` fr
 * is based on `nixos-22.05`, not `nixos-unstable`.
 * uses a flake to allow easier re-use.
 * includes flake-enabled nix by default.
-* added a few more package overrides to reduze size, see `outputs.overlay`.
+* added a few more package overrides to reduze size, see `overlays.default`.
 * dropped rasperry pi support #help-wanted
 * dropped netroot support #help-wanted
 

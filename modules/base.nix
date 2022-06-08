@@ -37,7 +37,7 @@ with lib;
         -device virtio-rng-pci
     '';
 
-    system.build.dist = pkgs.runCommand "nix-dabei-dist" {} ''
+    system.build.dist = pkgs.runCommand "nix-dabei-dist" { } ''
       mkdir $out
       cp ${config.system.build.squashfs} $out/root.squashfs
       cp ${config.system.build.kernel}/*Image $out/kernel
@@ -46,9 +46,10 @@ with lib;
     '';
 
     # nix-build -A system.build.toplevel && du -h $(nix-store -qR result) --max=0 -BM|sort -n
-    system.build.toplevel = pkgs.runCommand "nix-dabei" {
-      activationScript = config.system.activationScripts.script;
-    } ''
+    system.build.toplevel = pkgs.runCommand "nix-dabei"
+      {
+        activationScript = config.system.activationScripts.script;
+      } ''
       mkdir $out
       cp ${config.system.build.bootStage2} $out/init
       substituteInPlace $out/init --subst-var-by systemConfig $out

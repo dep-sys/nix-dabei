@@ -9,10 +9,10 @@ let
     firmware = config.hardware.firmware;
   };
   extraUtils = pkgs.runCommandCC "extra-utils"
-  {
-    buildInputs = [ pkgs.nukeReferences ];
-    allowedReferences = [ "out" ];
-  } ''
+    {
+      buildInputs = [ pkgs.nukeReferences ];
+      allowedReferences = [ "out" ];
+    } ''
     set +o pipefail
     mkdir -p $out/bin $out/lib
     ln -s $out/bin $out/sbin
@@ -136,7 +136,7 @@ let
     exec ${shell}
   '';
   initialRamdisk = pkgs.makeInitrd {
-    contents = [ { object = bootStage1; symlink = "/init"; } ];
+    contents = [{ object = bootStage1; symlink = "/init"; }];
   };
 in
 {
@@ -145,6 +145,6 @@ in
     system.build.initialRamdisk = initialRamdisk;
     system.build.extraUtils = extraUtils;
     boot.initrd.availableKernelModules = [ ];
-    boot.initrd.kernelModules = ["loop" "squashfs" ] ++ (lib.optional config.nix-dabei.nix "overlay");
+    boot.initrd.kernelModules = [ "loop" "squashfs" ] ++ (lib.optional config.nix-dabei.nix "overlay");
   };
 }

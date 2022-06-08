@@ -4,7 +4,7 @@
     environment = {
       systemPackages = mkOption {
         type = types.listOf types.package;
-        default = [];
+        default = [ ];
         example = literalExpression "[ pkgs.firefox pkgs.thunderbird ]";
         description = ''
           The set of packages that appear in
@@ -20,8 +20,8 @@
         type = types.listOf types.str;
         # Note: We need `/lib' to be among `pathsToLink' for NSS modules
         # to work.
-        default = [];
-        example = ["/"];
+        default = [ ];
+        example = [ "/" ];
         description = "List of directories to be symlinked in <filename>/run/current-system/sw</filename>.";
       };
       extraOutputsToInstall = mkOption {
@@ -33,10 +33,10 @@
     };
 
     system.path = mkOption {
-        internal = true;
-        description = ''
-          The packages you want in the boot environment.
-        '';
+      internal = true;
+      description = ''
+        The packages you want in the boot environment.
+      '';
     };
 
     boot.isContainer = mkOption {
@@ -65,7 +65,7 @@
 
     hardware.firmware = mkOption {
       type = types.listOf types.package;
-      default = [];
+      default = [ ];
       description = ''
         List of packages containing firmware files.  Such files
         will be loaded automatically if the kernel asks for them
@@ -75,21 +75,24 @@
         precedence.  Note that you must rebuild your system if you add
         files to any of these directories.
       '';
-      apply = let
-        compressFirmware = if config.boot.kernelPackages.kernelAtLeast "5.3"
-                           then pkgs.compressFirmwareXz else id;
-      in list: pkgs.buildEnv {
-        name = "firmware";
-        paths = map compressFirmware list;
-        pathsToLink = [ "/lib/firmware" ];
-        ignoreCollisions = true;
-      };
+      apply =
+        let
+          compressFirmware =
+            if config.boot.kernelPackages.kernelAtLeast "5.3"
+            then pkgs.compressFirmwareXz else id;
+        in
+        list: pkgs.buildEnv {
+          name = "firmware";
+          paths = map compressFirmware list;
+          pathsToLink = [ "/lib/firmware" ];
+          ignoreCollisions = true;
+        };
     };
 
     networking.nameservers = mkOption {
       type = types.listOf types.str;
-      default = [];
-      example = ["130.161.158.4" "130.161.33.17"];
+      default = [ ];
+      example = [ "130.161.158.4" "130.161.33.17" ];
       description = ''
         The list of nameservers.  It can be left empty if it is auto-detected through DHCP.
       '';

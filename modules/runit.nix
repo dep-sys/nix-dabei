@@ -1,17 +1,17 @@
 { pkgs, lib, config, ... }:
 
 let
-  compat = pkgs.runCommand "runit-compat" {} ''
-    mkdir -p $out/bin/
-    cat << EOF > $out/bin/poweroff
-#!/bin/sh
-exec runit-init 0
-EOF
-    cat << EOF > $out/bin/reboot
-#!/bin/sh
-exec runit-init 6
-EOF
-    chmod +x $out/bin/{poweroff,reboot}
+  compat = pkgs.runCommand "runit-compat" { } ''
+        mkdir -p $out/bin/
+        cat << EOF > $out/bin/poweroff
+    #!/bin/sh
+    exec runit-init 0
+    EOF
+        cat << EOF > $out/bin/reboot
+    #!/bin/sh
+    exec runit-init 6
+    EOF
+        chmod +x $out/bin/{poweroff,reboot}
   '';
 in
 {
@@ -65,10 +65,10 @@ in
       nix-store --load-db < /nix/store/nix-path-registration
       nix-daemon
     '';
-#    "service/shell/run".source = pkgs.writeScript "shell" ''
-#      #!/bin/sh
-#      exec ${pkgs.utillinux}/bin/setsid sh -c 'exec sh <> /dev/ttyS0 >&0 2>&1'
-#    '';
+    #    "service/shell/run".source = pkgs.writeScript "shell" ''
+    #      #!/bin/sh
+    #      exec ${pkgs.utillinux}/bin/setsid sh -c 'exec sh <> /dev/ttyS0 >&0 2>&1'
+    #    '';
 
   };
 }
