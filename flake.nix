@@ -19,7 +19,7 @@
             inherit pkgs;
             modules = (builtins.attrValues self.nixosModules);
             # Only document options which are declared inside this flake.
-            filter = (_: opt: lib.any (lib.hasPrefix "${self}/modules/") opt.declarations);
+            filter = (_: opt: opt.declarations == []);
           };
         in
         {
