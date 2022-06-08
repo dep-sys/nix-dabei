@@ -20,6 +20,21 @@
       inherit (config.environment) pathsToLink extraOutputsToInstall;
     };
     environment.etc = {
+      bashrc.text = "export PATH=/run/current-system/sw/bin";
+      profile.text = "export PATH=/run/current-system/sw/bin";
+      "resolv.conf".text = "nameserver 10.0.2.3";
+
+      "ssh/sshd_config".text = ''
+          Port 22
+          Protocol 2
+          HostKey /etc/ssh/ssh_host_rsa_key
+          HostKey /etc/ssh/ssh_host_ed25519_key
+          PidFile /run/sshd.pid
+          PermitRootLogin without-password
+          PasswordAuthentication no
+          AuthorizedKeysFile /etc/ssh/authorized_keys.d/%u
+      '';
+
       "nix/nix.conf".source = pkgs.runCommand "nix.conf" {} ''
         extraPaths=$(for i in $(cat ${pkgs.writeReferencesToFile pkgs.stdenv.shell}); do if test -d $i; then echo $i; fi; done)
         cat > $out << EOF
@@ -29,27 +44,20 @@
         experimental-features = nix-command flakes
         EOF
       '';
-      bashrc.text = "export PATH=/run/current-system/sw/bin";
-      profile.text = "export PATH=/run/current-system/sw/bin";
-      "resolv.conf".text = "nameserver 10.0.2.3";
-      passwd.text = ''
+
+      passwd.text = let
+        nixBuildUser = i: "nixbld${toString i}:x:3${lib.fixedWidthNumber 4 i}:30000:Nix build user ${toString i}:/var/empty:/run/current-system/sw/bin/nologin";
+      in ''
         root:x:0:0:System administrator:/root:/run/current-system/sw/bin/bash
         sshd:x:999:998:SSH privilege separation user:/var/empty:/run/current-system/sw/bin/nologin
-        nixbld1:x:30001:30000:Nix build user 1:/var/empty:/run/current-system/sw/bin/nologin
-        nixbld2:x:30002:30000:Nix build user 2:/var/empty:/run/current-system/sw/bin/nologin
-        nixbld3:x:30003:30000:Nix build user 3:/var/empty:/run/current-system/sw/bin/nologin
-        nixbld4:x:30004:30000:Nix build user 4:/var/empty:/run/current-system/sw/bin/nologin
-        nixbld5:x:30005:30000:Nix build user 5:/var/empty:/run/current-system/sw/bin/nologin
-        nixbld6:x:30006:30000:Nix build user 6:/var/empty:/run/current-system/sw/bin/nologin
-        nixbld7:x:30007:30000:Nix build user 7:/var/empty:/run/current-system/sw/bin/nologin
-        nixbld8:x:30008:30000:Nix build user 8:/var/empty:/run/current-system/sw/bin/nologin
-        nixbld9:x:30009:30000:Nix build user 9:/var/empty:/run/current-system/sw/bin/nologin
-        nixbld10:x:30010:30000:Nix build user 10:/var/empty:/run/current-system/sw/bin/nologin
+        ${lib.concatMapStringsSep "\n" nixBuildUser (lib.range 1 10)}
       '';
+
       "nsswitch.conf".text = ''
         hosts:     files  dns   myhostname mymachines
         networks:  files dns
       '';
+
       "services".source = pkgs.iana-etc + "/etc/services";
       group.text = ''
         root:x:0:
