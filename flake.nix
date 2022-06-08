@@ -74,10 +74,13 @@
         # NixOS modules which can be re-used as-is.
         upstream = {
           imports = [
+            "${self}/modules/filesystems.nix"
+            "${self}/modules/netboot.nix"
             "${nixpkgs}/nixos/modules/system/etc/etc-activation.nix"
             "${nixpkgs}/nixos/modules/system/activation/activation-script.nix"
-            "${nixpkgs}/nixos/modules/misc/nixpkgs.nix"
             "${nixpkgs}/nixos/modules/system/boot/kernel.nix"
+            "${nixpkgs}/nixos/modules/misc/ids.nix"
+            "${nixpkgs}/nixos/modules/misc/nixpkgs.nix"
             "${nixpkgs}/nixos/modules/misc/assertions.nix"
             "${nixpkgs}/nixos/modules/misc/lib.nix"
             "${nixpkgs}/nixos/modules/config/sysctl.nix"

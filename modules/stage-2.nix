@@ -17,20 +17,19 @@ with lib;
         echo
 
         mkdir -p /proc /sys /dev /tmp /var/log /etc /root /run /nix/var/nix/gcroots
-        mount -t proc proc /proc
-        mount -t sysfs sys /sys
-        mount -t devtmpfs devtmpfs /dev
-        mkdir /dev/pts /dev/shm
-        mount -t devpts devpts /dev/pts
-        mount -t tmpfs tmpfs /run
-        mount -t tmpfs tmpfs /dev/shm
+        @earlyMountScript@
 
         $systemConfig/activate
+        ln -sfn "$systemConfig" /run/booted-system
+
+        @postBootCommands
 
         exec runit
       '';
       isExecutable = true;
       path = config.system.path;
+      earlyMountScript = config.system.build.earlyMountScript;
+      postBootCommands = config.boot.postBootCommands;
     };
   };
 }

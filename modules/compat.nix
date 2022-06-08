@@ -39,6 +39,40 @@
       '';
     };
 
+    boot.loader = {
+      timeout =  mkOption {
+        # not used for nix-dabei, but needed for evaluation.
+        visible = false;
+        default = 5;
+        type = types.nullOr types.int;
+        description = ''
+              Timeout (in seconds) until loader boots the default menu item. Use null if the loader menu should be displayed indefinitely.
+            '';
+      };
+      grub = {
+        enable = mkOption {
+          # not used for nix-dabei, but needed for evaluation.
+          visible = false;
+          default = false;
+          defaultText = literalExpression "!config.boot.isContainer";
+          type = types.bool;
+          description = ''
+          Whether to enable the GNU GRUB boot loader.
+        '';
+        };
+      };
+    };
+
+    boot.postBootCommands = mkOption {
+      default = "";
+      example = "rm -f /var/log/messages";
+      type = types.lines;
+      description = ''
+          Shell commands to be executed just before systemd is started.
+        '';
+    };
+
+
     boot.isContainer = mkOption {
       # not used for nix-dabei, but needed for evaluation.
       visible = false;
@@ -81,13 +115,31 @@
             if config.boot.kernelPackages.kernelAtLeast "5.3"
             then pkgs.compressFirmwareXz else id;
         in
-        list: pkgs.buildEnv {
-          name = "firmware";
-          paths = map compressFirmware list;
-          pathsToLink = [ "/lib/firmware" ];
-          ignoreCollisions = true;
-        };
+          list: pkgs.buildEnv {
+            name = "firmware";
+            paths = map compressFirmware list;
+            pathsToLink = [ "/lib/firmware" ];
+            ignoreCollisions = true;
+          };
     };
+
+    fileSystems = mkOption {
+      type = with lib.types; attrsOf (submodule {
+        options.neededForBoot = mkOption {
+          default = false;
+          type = types.bool;
+          description = ''
+            If set, this file system will be mounted in the initial ramdisk.
+            Note that the file system will always be mounted in the initial
+            ramdisk if its mount point is one of the following:
+            ${concatStringsSep ", " (
+              forEach utils.pathsNeededForBoot (i: "<filename>${i}</filename>")
+            )}.
+          '';
+        };
+      });
+    };
+
 
     networking.nameservers = mkOption {
       type = types.listOf types.str;
@@ -111,6 +163,18 @@
       '';
     };
 
+    nix.package = mkOption {
+      # not used for nix-dabei, but needed for evaluation.
+      visible = false;
+      type = types.package;
+      default = pkgs.nix;
+      defaultText = literalExpression "pkgs.nix";
+      description = ''
+          This option specifies the Nix package instance to use throughout the system.
+        '';
+    };
+
+
     systemd.services = mkOption {
       # dummy to make nixos modules happy
       internal = true;
@@ -120,6 +184,26 @@
       internal = true;
     };
 
+    systemd.targets = mkOption {
+      # dummy to make nixos modules happy
+      internal = true;
+    };
+
+    systemd.tmpfiles = mkOption {
+      # dummy to make nixos modules happy
+      internal = true;
+    };
+
+    swapDevices = mkOption {
+      # dummy to make nixos modules happy
+      internal = true;
+      default = [];
+    };
+
+    boot.initrd.compressor = mkOption {
+      type = types.either types.str (types.functionTo types.str);
+      default = "xz";
+    };
   };
 
   config = {
@@ -129,7 +213,6 @@
     system.activationScripts.groups = ''
       # dummy to make setup-etc happy
     '';
-
-    system.build.earlyMountScript = pkgs.writeScript "dummy" '''';
   };
+
 }
