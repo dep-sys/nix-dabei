@@ -39,7 +39,7 @@
           makeShellScript = name: shell: { type = "app"; program = toString (pkgs.writeScript name shell); };
           runvm = {
             type = "app";
-            program = self.packages.${system}.runvm;
+            program = toString self.packages.${system}.runvm;
           };
         in
         scripts //
