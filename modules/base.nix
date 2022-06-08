@@ -3,15 +3,22 @@
 with lib;
 
 {
-  options = {
-    not-os.nix = mkOption {
+  options.not-os = {
+    nix = mkOption {
       type = types.bool;
-      description = "enable nix-daemon and a writeable store";
+      description = "Enable nix-daemon and a writeable store.";
     };
-    not-os.simpleStaticIp = mkOption {
+    simpleStaticIp = mkOption {
       type = types.bool;
       default = false;
       description = "set a static ip of 10.0.2.15";
+    };
+    preMount = mkOption {
+      type = types.lines;
+      default = "";
+      description = ''
+        Shell commands to execute in stage-1, before root file system is mounted.
+        Useful for debugging.'';
     };
   };
   config = {

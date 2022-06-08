@@ -38,11 +38,25 @@
         '';
     };
     boot.isContainer = mkOption {
+      # not used for nix-dabei, but needed for evaluation.
+      visible = false;
       type = types.bool;
       default = false;
       description = ''
         Whether this NixOS machine is a lightweight container running
         in another NixOS system.
+      '';
+    };
+    boot.initrd.enable = mkOption {
+      # not used for nix-dabei, but needed for evaluation.
+      visible = false;
+      type = types.bool;
+      default = true;
+      defaultText = literalExpression "!config.boot.isContainer";
+      description = ''
+        Whether to enable the NixOS initial RAM disk (initrd). This may be
+        needed to perform some initialisation tasks (like mounting
+        network/encrypted file systems) before continuing the boot process.
       '';
     };
     hardware.firmware = mkOption {

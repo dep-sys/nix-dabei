@@ -140,16 +140,6 @@ let
   };
 in
 {
-  options = {
-    not-os.preMount = mkOption {
-      type = types.lines;
-      default = "";
-    };
-    boot.initrd.enable = mkOption {
-      type = types.bool;
-      default = true;
-    };
-  };
   config = {
     system.build.bootStage1 = bootStage1;
     system.build.initialRamdisk = initialRamdisk;
