@@ -37,15 +37,15 @@
             docs = "cp -L --no-preserve=mode ${self.packages.${system}.docs}/options.md options.md";
           };
           makeShellScript = name: shell: { type = "app"; program = toString (pkgs.writeScript name shell); };
-          runvm = {
+          vm = {
             type = "app";
             program = toString self.packages.${system}.runvm;
           };
         in
         scripts //
         {
-          inherit runvm;
-          default = runvm;
+          inherit vm;
+          default = vm;
         };
 
       overlays.default = _final: prev: {
