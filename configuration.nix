@@ -3,6 +3,7 @@
   boot.initrd.kernelModules = [ "virtio" "virtio_pci" "virtio_net" "virtio_rng" "virtio_blk" "virtio_console" ];
   not-os.nix = true;
   not-os.simpleStaticIp = true;
+  networking.nameservers = ["1.1.1.1"];
   environment.systemPackages = [ pkgs.utillinux ];
   environment.etc = {
     "ssh/authorized_keys.d/root" = {

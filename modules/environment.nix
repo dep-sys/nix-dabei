@@ -22,7 +22,7 @@
     environment.etc = {
       bashrc.text = "export PATH=/run/current-system/sw/bin";
       profile.text = "export PATH=/run/current-system/sw/bin";
-      "resolv.conf".text = "nameserver 10.0.2.3";
+      "resolv.conf".text = (lib.concatMapStringsSep "\n" (ns: "nameserver ${ns}") config.networking.nameservers) + "\n";
 
       "ssh/sshd_config".text = ''
           Port 22

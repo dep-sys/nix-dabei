@@ -31,12 +31,14 @@
         description = "List of additional package outputs to be symlinked into <filename>/run/current-system/sw</filename>.";
       };
     };
+
     system.path = mkOption {
         internal = true;
         description = ''
           The packages you want in the boot environment.
         '';
     };
+
     boot.isContainer = mkOption {
       # not used for nix-dabei, but needed for evaluation.
       visible = false;
@@ -47,6 +49,7 @@
         in another NixOS system.
       '';
     };
+
     boot.initrd.enable = mkOption {
       # not used for nix-dabei, but needed for evaluation.
       visible = false;
@@ -59,6 +62,7 @@
         network/encrypted file systems) before continuing the boot process.
       '';
     };
+
     hardware.firmware = mkOption {
       type = types.listOf types.package;
       default = [];
@@ -81,6 +85,16 @@
         ignoreCollisions = true;
       };
     };
+
+    networking.nameservers = mkOption {
+      type = types.listOf types.str;
+      default = [];
+      example = ["130.161.158.4" "130.161.33.17"];
+      description = ''
+        The list of nameservers.  It can be left empty if it is auto-detected through DHCP.
+      '';
+    };
+
     networking.timeServers = mkOption {
       default = [
         "0.nixos.pool.ntp.org"
