@@ -8,7 +8,6 @@ let
     kernel = config.system.build.kernel;
     firmware = config.hardware.firmware;
   };
-  dhcpcd = pkgs.dhcpcd.override { udev = null; };
   extraUtils = pkgs.runCommandCC "extra-utils"
   {
     buildInputs = [ pkgs.nukeReferences ];
@@ -28,7 +27,6 @@ let
       copy_bin_and_libs $BIN
     done
 
-    copy_bin_and_libs ${pkgs.dhcpcd}/bin/dhcpcd
     copy_bin_and_libs ${pkgs.utillinux}/bin/lsblk
 
     # Copy ld manually since it isn't detected correctly
@@ -73,9 +71,6 @@ let
     $out/bin/mount --help 2>&1 | grep -q "BusyBox"
   '';
   shell = "${extraUtils}/bin/ash";
-  dhcpHook = pkgs.writeScript "dhcpHook" ''
-  #!${shell}
-  '';
   bootStage1 = pkgs.writeScript "stage-1" ''
     #!${shell}
     echo
@@ -106,14 +101,6 @@ let
         root=*)
           set -- $(IFS==; echo $o)
           root=$2
-          ;;
-        netroot=*)
-          set -- $(IFS==; echo $o)
-          mkdir -pv /var/run /var/db
-          sleep 5
-          dhcpcd eth0 -c ${dhcpHook}
-          tftp -g -r "$3" "$2"
-          root=/root.squashfs
           ;;
         realroot=*)
           set -- $(IFS==; echo $o)
