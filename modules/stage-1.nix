@@ -90,7 +90,11 @@ let
       modprobe $x
     done
 
-    root=/dev/vda
+    if [ -e /nix-store.squashfs ]; then
+      root=/nix-store.squashfs
+    else
+      root=/dev/vda
+    fi
     realroot=tmpfs
     for o in $(cat /proc/cmdline); do
       case $o in

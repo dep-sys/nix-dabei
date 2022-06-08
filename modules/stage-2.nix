@@ -22,7 +22,7 @@ with lib;
         $systemConfig/activate
         ln -sfn "$systemConfig" /run/booted-system
 
-        @postBootCommands
+        @postBootCommands@
 
         exec runit
       '';

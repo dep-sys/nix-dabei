@@ -29,7 +29,6 @@ with lib;
     system.build.runvm = pkgs.writeScript "runner" ''
       #!${pkgs.stdenv.shell}
       exec ${pkgs.qemu_kvm}/bin/qemu-kvm -name nix-dabei -m 512 \
-        -drive index=0,id=drive1,file=${config.system.build.squashfs},readonly,media=cdrom,format=raw,if=virtio \
         -kernel ${config.system.build.kernel}/bzImage -initrd ${config.system.build.initialRamdisk}/initrd -nographic \
         -append "console=ttyS0 ${toString config.boot.kernelParams} quiet panic=-1" -no-reboot \
         -net nic,model=virtio \
@@ -39,15 +38,15 @@ with lib;
 
     system.build.dist = pkgs.runCommand "nix-dabei-dist" { } ''
       mkdir $out
-      cp ${config.system.build.squashfs} $out/root.squashfs
+      cp ${config.system.build.squashfsStore} $out/root.squashfs
       cp ${config.system.build.kernel}/*Image $out/kernel
-      cp ${config.system.build.initialRamdisk}/initrd $out/initrd
+      cp ${config.system.build.netbootRamdisk}/initrd $out/initrd
       echo "${builtins.unsafeDiscardStringContext (toString config.boot.kernelParams)}" > $out/command-line
     '';
 
     system.build.kexec = pkgs.linkFarm "kexec" [
-      { name = "initrd.gz"; path = "${config.system.build.netbootRamdisk}/initrd"; }
-      { name = "bzImage";   path = "${config.system.build.kernel}/bzImage"; }
+      { name = "initrd"; path = "${config.system.build.netbootRamdisk}/initrd"; }
+      { name = "kernel";   path = "${config.system.build.kernel}/bzImage"; }
     ];
 
     # nix-build -A system.build.toplevel && du -h $(nix-store -qR result) --max=0 -BM|sort -n
@@ -64,10 +63,6 @@ with lib;
       chmod u+x $out/activate
       unset activationScript
     '';
-    # nix-build -A squashfs && ls -lLh result
-    system.build.squashfs = pkgs.callPackage (pkgs.path + "/nixos/lib/make-squashfs.nix") {
-      storeContents = [ config.system.build.toplevel ];
-    };
 
     system.activationScripts.ssh_keys = ''
       mkdir -p /etc/ssh
