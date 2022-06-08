@@ -19,8 +19,9 @@ Contributions welcome! :tada:
 * TODO: those should be migrated into github issues, whenever discussion is needed * implement & document kexec * check why perl seems to be incldued in toplevel? 
 * remove vendored netboot and filesystems.nix (two small patches)
 * add vm options submodule (and more ram)
-* setup cache (b2?)
 * setup github ci
+* setup cachix cache ci
+* finish kexec
 * include zfs kernel and runtime
 * write {read,write}-info.sh for hetzner
 

@@ -1,4 +1,4 @@
-{ lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 {
   options = with lib; {
     environment = {
@@ -40,14 +40,14 @@
     };
 
     boot.loader = {
-      timeout =  mkOption {
+      timeout = mkOption {
         # not used for nix-dabei, but needed for evaluation.
         visible = false;
         default = 5;
         type = types.nullOr types.int;
         description = ''
-              Timeout (in seconds) until loader boots the default menu item. Use null if the loader menu should be displayed indefinitely.
-            '';
+          Timeout (in seconds) until loader boots the default menu item. Use null if the loader menu should be displayed indefinitely.
+        '';
       };
       grub = {
         enable = mkOption {
@@ -57,8 +57,8 @@
           defaultText = literalExpression "!config.boot.isContainer";
           type = types.bool;
           description = ''
-          Whether to enable the GNU GRUB boot loader.
-        '';
+            Whether to enable the GNU GRUB boot loader.
+          '';
         };
       };
     };
@@ -68,8 +68,8 @@
       example = "rm -f /var/log/messages";
       type = types.lines;
       description = ''
-          Shell commands to be executed just before systemd is started.
-        '';
+        Shell commands to be executed just before systemd is started.
+      '';
     };
 
 
@@ -115,12 +115,12 @@
             if config.boot.kernelPackages.kernelAtLeast "5.3"
             then pkgs.compressFirmwareXz else id;
         in
-          list: pkgs.buildEnv {
-            name = "firmware";
-            paths = map compressFirmware list;
-            pathsToLink = [ "/lib/firmware" ];
-            ignoreCollisions = true;
-          };
+        list: pkgs.buildEnv {
+          name = "firmware";
+          paths = map compressFirmware list;
+          pathsToLink = [ "/lib/firmware" ];
+          ignoreCollisions = true;
+        };
     };
 
     fileSystems = mkOption {
@@ -128,14 +128,18 @@
         options.neededForBoot = mkOption {
           default = false;
           type = types.bool;
-          description = ''
-            If set, this file system will be mounted in the initial ramdisk.
-            Note that the file system will always be mounted in the initial
-            ramdisk if its mount point is one of the following:
-            ${concatStringsSep ", " (
-              forEach utils.pathsNeededForBoot (i: "<filename>${i}</filename>")
-            )}.
-          '';
+          description =
+            let
+              utils = import "${pkgs.path}/nixos/lib/utils.nix" { inherit config lib pkgs; };
+            in
+            ''
+              If set, this file system will be mounted in the initial ramdisk.
+              Note that the file system will always be mounted in the initial
+              ramdisk if its mount point is one of the following:
+              ${concatStringsSep ", " (
+                forEach utils.pathsNeededForBoot (i: "<filename>${i}</filename>")
+              )}.
+            '';
         };
       });
     };
@@ -170,8 +174,8 @@
       default = pkgs.nix;
       defaultText = literalExpression "pkgs.nix";
       description = ''
-          This option specifies the Nix package instance to use throughout the system.
-        '';
+        This option specifies the Nix package instance to use throughout the system.
+      '';
     };
 
 
@@ -197,7 +201,7 @@
     swapDevices = mkOption {
       # dummy to make nixos modules happy
       internal = true;
-      default = [];
+      default = [ ];
     };
 
     boot.initrd.compressor = mkOption {

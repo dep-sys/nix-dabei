@@ -17,9 +17,9 @@
 
           docs = import ./lib/makeDocs.nix {
             inherit pkgs;
-            modules = (builtins.attrValues self.nixosModules);
+            modules = builtins.attrValues self.nixosModules;
             # Only document options which are declared inside this flake.
-            filter = (_: opt: opt.declarations == []);
+            filter = _: opt: opt.declarations == [ ];
           };
         in
         {
@@ -44,8 +44,7 @@
         in
         scripts //
         {
-          inherit vm;
-          default = vm;
+          inherit vm; default = vm;
         };
 
       overlays.default = _final: prev: {

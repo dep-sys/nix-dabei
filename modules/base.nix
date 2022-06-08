@@ -46,7 +46,7 @@ with lib;
 
     system.build.kexec = pkgs.linkFarm "kexec" [
       { name = "initrd"; path = "${config.system.build.netbootRamdisk}/initrd"; }
-      { name = "kernel";   path = "${config.system.build.kernel}/bzImage"; }
+      { name = "kernel"; path = "${config.system.build.kernel}/bzImage"; }
     ];
 
     # nix-build -A system.build.toplevel && du -h $(nix-store -qR result) --max=0 -BM|sort -n
