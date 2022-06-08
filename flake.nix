@@ -23,7 +23,7 @@
           };
         in
         {
-          inherit (nixosConfiguration.config.system.build) runvm dist toplevel squashfs;
+          inherit (nixosConfiguration.config.system.build) runvm dist toplevel kexec;
           default = nixosConfiguration.config.system.build.dist;
           docs = docs.all;
         };

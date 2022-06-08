@@ -45,6 +45,11 @@ with lib;
       echo "${builtins.unsafeDiscardStringContext (toString config.boot.kernelParams)}" > $out/command-line
     '';
 
+    system.build.kexec = pkgs.linkFarm "kexec" [
+      { name = "initrd.gz"; path = "${config.system.build.netbootRamdisk}/initrd"; }
+      { name = "bzImage";   path = "${config.system.build.kernel}/bzImage"; }
+    ];
+
     # nix-build -A system.build.toplevel && du -h $(nix-store -qR result) --max=0 -BM|sort -n
     system.build.toplevel = pkgs.runCommand "nix-dabei"
       {
