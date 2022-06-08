@@ -10,28 +10,6 @@ let
 in
 {
   options = {
-    environment = {
-      systemPackages = mkOption {
-        type = types.listOf types.package;
-        default = [];
-        example = literalExample "[ pkgs.firefox pkgs.thunderbird ]";
-      };
-      pathsToLink = mkOption {
-        type = types.listOf types.str;
-        default = [];
-        example = ["/"];
-        description = "List of directories to be symlinked in <filename>/run/current-system/sw</filename>.";
-      };
-      extraOutputsToInstall = mkOption {
-        type = types.listOf types.str;
-        default = [ ];
-        example = [ "doc" "info" "docdev" ];
-        description = "List of additional package outputs to be symlinked into <filename>/run/current-system/sw</filename>.";
-      };
-    };
-    system.path = mkOption {
-      internal = true;
-    };
   };
   config = {
     environment.systemPackages = requiredPackages;

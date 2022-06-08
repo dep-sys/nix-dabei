@@ -6,11 +6,10 @@
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; overlays = [ self.overlay ]; };
-      lib = nixpkgs.lib;
-
       baseModules = [
+        ./modules/compat.nix
+        ./modules/environment.nix
         ./modules/base.nix
-        ./modules/system-path.nix
         ./modules/stage-1.nix
         ./modules/stage-2.nix
         ./modules/runit.nix
@@ -21,7 +20,6 @@
         (nixpkgs + "/nixos/modules/misc/assertions.nix")
         (nixpkgs + "/nixos/modules/misc/lib.nix")
         (nixpkgs + "/nixos/modules/config/sysctl.nix")
-        ./modules/systemd-compat.nix
         ({ ... }: {
           config.nixpkgs = {
             inherit pkgs;
@@ -50,12 +48,12 @@
         }).overrideAttrs (oldAttrs: { doInstallCheck = false; });
       };
 
-      packages.${system} = rec {
-        node = evalConfig [ ./configuration.nix ];
-        toplevel = node.config.system.build.toplevel;
-        run-node-vm = node.config.system.build.runvm;
+      packages.${system} = let
+        config = (evalConfig [ ./configuration.nix ]).config;
+      in {
+        inherit (config.system.build) runvm dist toplevel squashfs;
       };
-      defaultPackage.${system} = self.packages.${system}.run-node-vm;
+      defaultPackage.${system} = self.packages.${system}.runvm;
 
       nixosModules = {};
     };

@@ -4,20 +4,6 @@ with lib;
 
 {
   options = {
-    boot.isContainer = mkOption {
-      type = types.bool;
-      default = false;
-    };
-    hardware.firmware = mkOption {
-      type = types.listOf types.package;
-      default = [];
-      apply = list: pkgs.buildEnv {
-        name = "firmware";
-        paths = list;
-        pathsToLink = [ "/lib/firmware" ];
-        ignoreCollisions = true;
-      };
-    };
     not-os.nix = mkOption {
       type = types.bool;
       description = "enable nix-daemon and a writeable store";
@@ -27,62 +13,12 @@ with lib;
       default = false;
       description = "set a static ip of 10.0.2.15";
     };
-    networking.timeServers = mkOption {
-      default = [
-        "0.nixos.pool.ntp.org"
-        "1.nixos.pool.ntp.org"
-        "2.nixos.pool.ntp.org"
-        "3.nixos.pool.ntp.org"
-      ];
-      type = types.listOf types.str;
-      description = ''
-        The set of NTP servers from which to synchronise.
-      '';
-    };
   };
   config = {
     environment.systemPackages = lib.optional config.not-os.nix pkgs.nix;
-    environment.etc = {
-      "nix/nix.conf".source = pkgs.runCommand "nix.conf" {} ''
-        extraPaths=$(for i in $(cat ${pkgs.writeReferencesToFile pkgs.stdenv.shell}); do if test -d $i; then echo $i; fi; done)
-        cat > $out << EOF
-        build-use-sandbox = true
-        build-users-group = nixbld
-        build-sandbox-paths = /bin/sh=${pkgs.stdenv.shell} $(echo $extraPaths)
-        experimental-features = nix-command flakes
-        EOF
-      '';
-      bashrc.text = "export PATH=/run/current-system/sw/bin";
-      profile.text = "export PATH=/run/current-system/sw/bin";
-      "resolv.conf".text = "nameserver 10.0.2.3";
-      passwd.text = ''
-        root:x:0:0:System administrator:/root:/run/current-system/sw/bin/bash
-        sshd:x:999:998:SSH privilege separation user:/var/empty:/run/current-system/sw/bin/nologin
-        nixbld1:x:30001:30000:Nix build user 1:/var/empty:/run/current-system/sw/bin/nologin
-        nixbld2:x:30002:30000:Nix build user 2:/var/empty:/run/current-system/sw/bin/nologin
-        nixbld3:x:30003:30000:Nix build user 3:/var/empty:/run/current-system/sw/bin/nologin
-        nixbld4:x:30004:30000:Nix build user 4:/var/empty:/run/current-system/sw/bin/nologin
-        nixbld5:x:30005:30000:Nix build user 5:/var/empty:/run/current-system/sw/bin/nologin
-        nixbld6:x:30006:30000:Nix build user 6:/var/empty:/run/current-system/sw/bin/nologin
-        nixbld7:x:30007:30000:Nix build user 7:/var/empty:/run/current-system/sw/bin/nologin
-        nixbld8:x:30008:30000:Nix build user 8:/var/empty:/run/current-system/sw/bin/nologin
-        nixbld9:x:30009:30000:Nix build user 9:/var/empty:/run/current-system/sw/bin/nologin
-        nixbld10:x:30010:30000:Nix build user 10:/var/empty:/run/current-system/sw/bin/nologin
-      '';
-      "nsswitch.conf".text = ''
-        hosts:     files  dns   myhostname mymachines
-        networks:  files dns
-      '';
-      "services".source = pkgs.iana-etc + "/etc/services";
-      group.text = ''
-        root:x:0:
-        nixbld:x:30000:nixbld1,nixbld10,nixbld2,nixbld3,nixbld4,nixbld5,nixbld6,nixbld7,nixbld8,nixbld9
-      '';
-    };
     boot.kernelParams = [ "systemConfig=${config.system.build.toplevel}" ];
     boot.kernelPackages = lib.mkDefault pkgs.linuxPackages;
-    system.build.earlyMountScript = pkgs.writeScript "dummy" ''
-    '';
+
     system.build.runvm = pkgs.writeScript "runner" ''
       #!${pkgs.stdenv.shell}
       exec ${pkgs.qemu_kvm}/bin/qemu-kvm -name not-os -m 512 \
@@ -100,13 +36,6 @@ with lib;
       cp ${config.system.build.kernel}/*Image $out/kernel
       cp ${config.system.build.initialRamdisk}/initrd $out/initrd
       echo "${builtins.unsafeDiscardStringContext (toString config.boot.kernelParams)}" > $out/command-line
-    '';
-
-    system.activationScripts.users = ''
-      # dummy to make setup-etc happy
-    '';
-    system.activationScripts.groups = ''
-      # dummy to make setup-etc happy
     '';
 
     # nix-build -A system.build.toplevel && du -h $(nix-store -qR result) --max=0 -BM|sort -n
