@@ -44,13 +44,16 @@
       };
       defaultPackage.${system} = self.packages.${system}.runvm;
 
+
       nixosModules = {
         environment = ./modules/environment.nix;
         base = ./modules/base.nix;
         runit = ./modules/runit.nix;
         stage-1 = ./modules/stage-1.nix;
         stage-2 = ./modules/stage-2.nix;
+        # Extracted nixos options shims, where we don't want the whole nixos module file.
         compat = ./modules/compat.nix;
+        # NixOS modules which can be re-used as-is.
         upstream = {
           imports = [
             "${nixpkgs}/nixos/modules/system/etc/etc-activation.nix"
@@ -63,6 +66,8 @@
             "${nixpkgs}/nixos/modules/security/ca.nix"
           ];
         };
+        # Let the generated operating system use our nixpkgs and overlay,
+        # but still allow flake users to provide their own.
         nixpkgs = {
           config.nixpkgs = {
             inherit pkgs;

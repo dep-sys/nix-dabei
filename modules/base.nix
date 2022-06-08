@@ -3,7 +3,7 @@
 with lib;
 
 {
-  options.not-os = {
+  options.nix-dabei = {
     nix = mkOption {
       type = types.bool;
       description = "Enable nix-daemon and a writeable store.";
@@ -22,13 +22,13 @@ with lib;
     };
   };
   config = {
-    environment.systemPackages = lib.optional config.not-os.nix pkgs.nix;
+    environment.systemPackages = lib.optional config.nix-dabei.nix pkgs.nix;
     boot.kernelParams = [ "systemConfig=${config.system.build.toplevel}" ];
     boot.kernelPackages = lib.mkDefault pkgs.linuxPackages;
 
     system.build.runvm = pkgs.writeScript "runner" ''
       #!${pkgs.stdenv.shell}
-      exec ${pkgs.qemu_kvm}/bin/qemu-kvm -name not-os -m 512 \
+      exec ${pkgs.qemu_kvm}/bin/qemu-kvm -name nix-dabei -m 512 \
         -drive index=0,id=drive1,file=${config.system.build.squashfs},readonly,media=cdrom,format=raw,if=virtio \
         -kernel ${config.system.build.kernel}/bzImage -initrd ${config.system.build.initialRamdisk}/initrd -nographic \
         -append "console=ttyS0 ${toString config.boot.kernelParams} quiet panic=-1" -no-reboot \
@@ -37,7 +37,7 @@ with lib;
         -device virtio-rng-pci
     '';
 
-    system.build.dist = pkgs.runCommand "not-os-dist" {} ''
+    system.build.dist = pkgs.runCommand "nix-dabei-dist" {} ''
       mkdir $out
       cp ${config.system.build.squashfs} $out/root.squashfs
       cp ${config.system.build.kernel}/*Image $out/kernel
@@ -46,7 +46,7 @@ with lib;
     '';
 
     # nix-build -A system.build.toplevel && du -h $(nix-store -qR result) --max=0 -BM|sort -n
-    system.build.toplevel = pkgs.runCommand "not-os" {
+    system.build.toplevel = pkgs.runCommand "nix-dabei" {
       activationScript = config.system.activationScripts.script;
     } ''
       mkdir $out

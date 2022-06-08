@@ -19,7 +19,7 @@ in
   environment.etc = {
     "runit/1".source = pkgs.writeScript "1" ''
       #!${pkgs.stdenv.shell}
-      ${if config.not-os.simpleStaticIp then ''
+      ${if config.nix-dabei.simpleStaticIp then ''
       ip addr add 10.0.2.15 dev eth0
       ip link set eth0 up
       ip route add 10.0.2.0/24 dev eth0

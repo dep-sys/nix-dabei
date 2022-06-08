@@ -74,7 +74,7 @@ let
   bootStage1 = pkgs.writeScript "stage-1" ''
     #!${shell}
     echo
-    echo "[1;32m<<< NotOS Stage 1 >>>[0m"
+    echo "[1;32m<<< Nix-Dabei Stage 1 >>>[0m"
     echo
 
     export PATH=${extraUtils}/bin/
@@ -109,7 +109,7 @@ let
       esac
     done
 
-    ${config.not-os.preMount}
+    ${config.nix-dabei.preMount}
     if [ $realroot = tmpfs ]; then
       mount -t tmpfs root /mnt/ -o size=1G || exec ${shell}
     else
@@ -117,7 +117,7 @@ let
     fi
     chmod 755 /mnt/
     mkdir -p /mnt/nix/store/
-    ${if config.not-os.nix then ''
+    ${if config.nix-dabei.nix then ''
     # make the store writeable
     mkdir -p /mnt/nix/.ro-store /mnt/nix/.overlay-store /mnt/nix/store
     mount $root /mnt/nix/.ro-store -t squashfs
@@ -145,6 +145,6 @@ in
     system.build.initialRamdisk = initialRamdisk;
     system.build.extraUtils = extraUtils;
     boot.initrd.availableKernelModules = [ ];
-    boot.initrd.kernelModules = ["loop" "squashfs" ] ++ (lib.optional config.not-os.nix "overlay");
+    boot.initrd.kernelModules = ["loop" "squashfs" ] ++ (lib.optional config.nix-dabei.nix "overlay");
   };
 }

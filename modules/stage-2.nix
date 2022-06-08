@@ -13,7 +13,7 @@ with lib;
 
       # Print a greeting.
       echo
-      echo -e "\e[1;32m<<< NotOS Stage 2 >>>\e[0m"
+      echo -e "\e[1;32m<<< Nix-Dabei Stage 2 >>>\e[0m"
       echo
 
       mkdir -p /proc /sys /dev /tmp /var/log /etc /root /run /nix/var/nix/gcroots
