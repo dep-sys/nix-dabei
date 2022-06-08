@@ -1,6 +1,6 @@
 {
   description = "Minimal operating systems based on not-os";
-  inputs.nixpkgs.url = "nixpkgs/nixos-unstable";
+  inputs.nixpkgs.url = "nixpkgs/nixos-22.05";
 
   outputs = { self, nixpkgs }@inputs:
     let
