@@ -26,6 +26,8 @@ Contributions welcome! :tada:
 
 # Usage Tips 
 
+(Most) available options are documented in [options documentation](./options.md) 
+
 ## Run virtual machine
 
 ```sh

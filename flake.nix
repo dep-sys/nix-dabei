@@ -24,8 +24,7 @@
         in
         {
           inherit (nixosConfiguration.config.system.build) runvm dist toplevel squashfs;
-          default = nixosConfiguration.config.system.build.runvm;
-          # TODO: app for `cp -L --no-preserve=mode result/options.md options.md`
+          default = nixosConfiguration.config.system.build.dist;
           docs = docs.all;
         };
 
@@ -35,6 +34,7 @@
             lint = "${pkgs.nix-linter}/bin/nix-linter **/*.nix *.nix";
             format = "${pkgs.nixpkgs-fmt}/bin/nixpkgs-fmt **/*.nix *.nix";
             repl = "nix repl repl.nix";
+            docs = "cp -L --no-preserve=mode ${self.packages.${system}.docs}/options.md options.md";
           };
           makeShellScript = name: shell: { type = "app"; program = toString (pkgs.writeScript name shell); };
           runvm = {

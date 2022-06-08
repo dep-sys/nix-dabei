@@ -17,6 +17,7 @@ let
     '';
 in
 {
+  inherit (docs) optionsNix;
   inherit optionsJSON optionsMarkdown;
   all = pkgs.linkFarm "docs" [{ name = "options.json"; path = optionsJSON; } { name = "options.md"; path = optionsMarkdown; }];
 }
