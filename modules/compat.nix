@@ -5,10 +5,21 @@
       systemPackages = mkOption {
         type = types.listOf types.package;
         default = [];
-        example = literalExample "[ pkgs.firefox pkgs.thunderbird ]";
+        example = literalExpression "[ pkgs.firefox pkgs.thunderbird ]";
+        description = ''
+          The set of packages that appear in
+          /run/current-system/sw.  These packages are
+          automatically available to all users, and are
+          automatically updated every time you rebuild the system
+          configuration.  (The latter is the main difference with
+          installing them in the default profile,
+          <filename>/nix/var/nix/profiles/default</filename>.
+        '';
       };
       pathsToLink = mkOption {
         type = types.listOf types.str;
+        # Note: We need `/lib' to be among `pathsToLink' for NSS modules
+        # to work.
         default = [];
         example = ["/"];
         description = "List of directories to be symlinked in <filename>/run/current-system/sw</filename>.";
@@ -21,24 +32,37 @@
       };
     };
     system.path = mkOption {
-      internal = true;
-    };
-    systemd.services = mkOption {
-      # dummy to make nixos modules happy
-    };
-    systemd.user = mkOption {
-      # dummy to make nixos modules happy
+        internal = true;
+        description = ''
+          The packages you want in the boot environment.
+        '';
     };
     boot.isContainer = mkOption {
       type = types.bool;
       default = false;
+      description = ''
+        Whether this NixOS machine is a lightweight container running
+        in another NixOS system.
+      '';
     };
     hardware.firmware = mkOption {
       type = types.listOf types.package;
       default = [];
-      apply = list: pkgs.buildEnv {
+      description = ''
+        List of packages containing firmware files.  Such files
+        will be loaded automatically if the kernel asks for them
+        (i.e., when it has detected specific hardware that requires
+        firmware to function).  If multiple packages contain firmware
+        files with the same name, the first package in the list takes
+        precedence.  Note that you must rebuild your system if you add
+        files to any of these directories.
+      '';
+      apply = let
+        compressFirmware = if config.boot.kernelPackages.kernelAtLeast "5.3"
+                           then pkgs.compressFirmwareXz else id;
+      in list: pkgs.buildEnv {
         name = "firmware";
-        paths = list;
+        paths = map compressFirmware list;
         pathsToLink = [ "/lib/firmware" ];
         ignoreCollisions = true;
       };
@@ -55,6 +79,16 @@
         The set of NTP servers from which to synchronise.
       '';
     };
+
+    systemd.services = mkOption {
+      # dummy to make nixos modules happy
+      internal = true;
+    };
+    systemd.user = mkOption {
+      # dummy to make nixos modules happy
+      internal = true;
+    };
+
   };
 
   config = {

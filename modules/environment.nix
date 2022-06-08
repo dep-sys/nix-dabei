@@ -13,7 +13,7 @@
       curl
     ];
 
-    environment.pathsToLink = [ "/bin" ];
+    environment.pathsToLink = [ "/bin" "lib" ];
     system.path = pkgs.buildEnv {
       name = "system-path";
       paths = config.environment.systemPackages;
