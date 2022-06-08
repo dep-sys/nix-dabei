@@ -22,7 +22,7 @@ in
     };
   };
   config = {
-    environment.systemPackages = lib.optional config.nix-dabei.nix pkgs.nix;
+    environment.systemPackages = with pkgs; lib.optional cfg.nix nix ++ [kexec-tools];
     boot.kernelParams = [ "systemConfig=${config.system.build.toplevel}" ];
     boot.kernelPackages = lib.mkDefault pkgs.linuxPackages;
 
