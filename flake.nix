@@ -1,5 +1,5 @@
 {
-  description = "Minimal operating systems based on not-os";
+  description = "An operating system generator, based on not-os, focused on installation";
   inputs.nixpkgs.url = "nixpkgs/nixos-22.05";
 
   outputs = { self, nixpkgs }@inputs:
