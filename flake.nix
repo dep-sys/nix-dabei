@@ -36,16 +36,17 @@
             repl = "nix repl repl.nix";
             docs = "cp -L --no-preserve=mode ${self.packages.${system}.docs}/options.md options.md";
           };
-          makeShellScript = name: shell: { type = "app"; program = toString (pkgs.writeScript name shell); };
-          vm = {
-            type = "app";
-            program = toString self.packages.${system}.runvm;
+          packages = pkgs.lib.mapAttrs makePackageApp {
+            vm = { program = "runvm"; };
           };
+          makeSimpleApp = program:
+            { type = "app"; programm = toString program; };
+          makeShellScript = name: content:
+            makeSimpleApp (pkgs.writeScript name content);
+          makePackageApp = name: { program ? null }:
+            makeSimpleApp self.packages.${system}.${program || name};
         in
-        scripts //
-        {
-          inherit vm; default = vm;
-        };
+        scripts // packages // { default = packages.vm; };
 
       overlays.default = _final: prev: {
         procps = prev.procps.override { withSystemd = false; };
