@@ -5,11 +5,11 @@ let cfg = config.nix-dabei;
 in
 {
   options.nix-dabei = {
-    nix = mkEnableOption {
+    nix = mkEnableOption "nix" // {
       default = true;
       description = "Enable nix-daemon and a writeable store.";
     };
-    simpleStaticIp = mkEnableOption {
+    simpleStaticIp = mkEnableOption "simpleStaticIp" // {
       default = false;
       description = "set a static ip of 10.0.2.15, else use dhcp";
     };
