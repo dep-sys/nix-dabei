@@ -22,6 +22,7 @@ Contributions welcome! :tada:
 * remove vendored netboot and filesystems.nix (two small patches)
 * add vm options submodule (and more ram)
 * finish kexec
+* explore using systemd-minimal now that systemd in stage-1 has landed.
 * include zfs kernel and runtime
 * write {read,write}-info.sh for hetzner
 
