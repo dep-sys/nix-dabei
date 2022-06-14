@@ -28,9 +28,10 @@
 
     # There's no boot.initrd.postMountCommands with systemd.initrd
     boot.initrd.systemd.services.overlay-helper = {
-        after = [  "sysroot-nix-.rw\x2dstore.mount"  "sysroot-nix-.ro\x2dstore.mount" ];
-        requiredBy = [ "sysroot-nix-store.mount" ];
+        after = [ "sysroot-nix-.rw\\x2dstore.mount" "sysroot-nix-.ro\\x2dstore.mount" ];
         before = [ "sysroot-nix-store.mount" ];
+        requiredBy = [ "sysroot-nix-store.mount" ];
+        unitConfig.DefaultDependencies = false;
         serviceConfig.Type = "oneshot";
           script = ''mkdir -p /sysroot/nix/.rw-store/store /sysroot/nix/.rw-store/work'';
     };

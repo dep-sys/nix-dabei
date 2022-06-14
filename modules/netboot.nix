@@ -67,8 +67,6 @@ with lib;
         fsType = "overlay";
         device = "overlay";
         options = [
-          "noauto"
-          "x-systemd.automount"
           "lowerdir=/sysroot/nix/.ro-store"
           "upperdir=/sysroot/nix/.rw-store/store"
           "workdir=/sysroot/nix/.rw-store/work"
