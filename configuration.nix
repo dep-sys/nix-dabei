@@ -55,6 +55,7 @@
 
     services.openssh.enable = true;
 
+    boot.enableContainers = lib.mkForce false;
     environment.noXlibs = true;
     security.polkit.enable = lib.mkForce false;
     hardware.enableRedistributableFirmware = lib.mkForce false;
