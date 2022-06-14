@@ -14,6 +14,8 @@
     nix-dabei = {
     };
 
+    nix.extraOptions = "extra-experimental-features = nix-command flakes";
+
     boot.initrd.systemd = {
       enable = true;
       emergencyAccess = true;
