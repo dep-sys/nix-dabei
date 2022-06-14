@@ -11,18 +11,16 @@
       packages.${system} =
         with pkgs;
         let
-          #docs = import ./lib/makeDocs.nix {
-          #  inherit pkgs; modules = builtins.attrValues self.nixosModules; # Only document options which are declared inside this flake.
-          #  filter = _: opt: opt.declarations == [ ];
-          #};
-          config = self.nixosConfigurations.default.config;
+         config = self.nixosConfigurations.default.config;
         in
         {
-          # inherit (nixosConfiguration.config.system.build) runvm dist toplevel kexec;
-          inherit (config.system.build) toplevel kexecBoot netbootRamdisk dist runvm;
+          inherit (config.system.build)
+            toplevel
+            kexecBoot
+            netbootRamdisk
+            dist
+            runvm;
           default = config.system.build.toplevel;
-          #docs = docs.all;
-          #inherit pkgs;
         };
 
       apps.${system} =
@@ -34,7 +32,7 @@
             docs = "cp -L --no-preserve=mode ${self.packages.${system}.docs}/options.md options.md";
           };
           packages = pkgs.lib.mapAttrs makePackageApp {
-            vm = { program = "runvm"; };
+            vm = { program = self.packages.${system}.runvm; };
           };
           makeSimpleApp = program:
             { type = "app"; programm = toString program; };
@@ -46,8 +44,7 @@
         scripts // packages // { default = packages.vm; };
 
       devShells.${system}.default = pkgs.mkShell {
-        buildInputs = with pkgs; [ nix-tree ];
-
+        buildInputs = with pkgs; [ nix-tree nvd ];
       };
 
       overlays.default = _final: prev: {
@@ -65,11 +62,9 @@
       };
 
       nixosModules = {
-        environment = import ./modules/environment.nix;
         base = import ./modules/base.nix;
        upstream = {
           imports = [
-            "${self}/modules/kexec-boot.nix"
             "${self}/modules/netboot.nix"
          ];
         };

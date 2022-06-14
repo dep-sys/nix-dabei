@@ -12,8 +12,6 @@
 
   config = {
     nix-dabei = {
-      nix = true;
-      simpleStaticIp = true;
     };
 
     boot.initrd.systemd = {
@@ -47,7 +45,6 @@
         };
       };
     };
-
     systemd.tmpfiles.rules = [
       "f /etc/NIXOS 0644 root root -"
       "d /boot 0644 root root -"
@@ -63,7 +60,9 @@
     services.udisks2.enable = false;
     services.timesyncd.enable = lib.mkForce false;
 
-    #system.build.bootStage2 = pkgs.lib.mkForce null;
+    services.nscd.enable = lib.mkForce false;
+    system.nssModules = lib.mkForce [];
+
 
     networking.hostName = "nix-dabei";
     networking.nameservers = [ "1.1.1.1" ];
