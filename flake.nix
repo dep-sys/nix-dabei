@@ -17,7 +17,6 @@
           inherit (config.system.build)
             toplevel
             kexecBoot
-            netbootRamdisk
             dist
             runvm;
           default = config.system.build.toplevel;
@@ -62,7 +61,7 @@
       };
 
       nixosModules = {
-        base = import ./modules/base.nix;
+        build = import ./modules/build.nix;
        upstream = {
           imports = [
             "${self}/modules/netboot.nix"

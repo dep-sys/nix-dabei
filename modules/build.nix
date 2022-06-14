@@ -1,28 +1,29 @@
 { pkgs, config, lib, ... }:
-
 with lib;
-let cfg = config.nix-dabei;
-in
 {
-  options.nix-dabei = {
-  };
-  config = {
+  config = let
+    kernelParams = builtins.unsafeDiscardStringContext (toString config.boot.kernelParams);
+    kernelFile = config.system.boot.loader.kernelFile;
+    kernel = "${config.system.build.kernel}/${kernelFile}";
+    initrd = "${config.system.build.netbootRamdisk}/initrd";
+    toplevel = config.system.build.toplevel;
+    in {
+
+    system.build.dist = pkgs.runCommand "nix-dabei-dist" { } ''
+      mkdir $out
+      cp ${kernel} $out/${kernelFile}
+      cp ${initrd} $out/initrd
+      echo "${kernelParams}" > $out/command-line
+    '';
 
     system.build.runvm = pkgs.writeScript "runner" ''
       #!${pkgs.stdenv.shell}
       exec ${pkgs.qemu_kvm}/bin/qemu-kvm -name nix-dabei -m 2048 \
-        -kernel ${config.system.build.kernel}/${config.system.boot.loader.kernelFile} -initrd ${config.system.build.netbootRamdisk}/initrd -nographic \
-        -append "console=ttyS0 init=${config.system.build.toplevel}/init ${toString config.boot.kernelParams} " -no-reboot \
+        -kernel ${kernel} -initrd ${initrd} -nographic \
+        -append "console=ttyS0 init=${toplevel}/init ${kernelParams} " -no-reboot \
         -net nic,model=virtio \
         -net user,net=10.0.2.0/24,host=10.0.2.2,dns=10.0.2.3,hostfwd=tcp::2222-:22 \
         -device virtio-rng-pci
-    '';
-
-    system.build.dist = pkgs.runCommand "nix-dabei-dist" { } ''
-      mkdir $out
-      cp ${config.system.build.kernel}/${config.system.boot.loader.kernelFile} $out/${config.system.boot.loader.kernelFile}
-      cp ${config.system.build.netbootRamdisk}/initrd $out/initrd
-      echo "${builtins.unsafeDiscardStringContext (toString config.boot.kernelParams)}" > $out/command-line
     '';
 
     system.build.kexecBoot =
@@ -41,9 +42,9 @@ in
             fi
           fi
           SCRIPT_DIR=$( cd -- "$( dirname -- "''${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-          kexec --load ''${SCRIPT_DIR}/${config.system.boot.loader.kernelFile} \
+          kexec --load ''${SCRIPT_DIR}/${kernelFile} \
             --initrd=''${SCRIPT_DIR}/initrd \
-            --command-line "init=${config.system.build.toplevel}/init ${toString config.boot.kernelParams}"
+            --command-line "init=${toplevel}/init ${kernelParams}"
           if systemctl --version >/dev/null 2>&1; then
             systemctl kexec
           else
@@ -51,18 +52,9 @@ in
           fi
        ''; in
       pkgs.linkFarm "kexec-boot" [
-        {
-          name = "initrd.gz";
-          path = "${config.system.build.netbootRamdisk}/initrd";
-        }
-        {
-          name = "bzImage";
-          path = "${config.system.build.kernel}/${config.system.boot.loader.kernelFile}";
-        }
-        {
-          name = "kexec-boot";
-          path = kexecScript;
-        }
+        { name = "initrd.gz"; path = initrd; }
+        { name = "bzImage"; path = kernel; }
+        { name = "kexec-boot"; path = kexecScript; }
       ];
 
   };
