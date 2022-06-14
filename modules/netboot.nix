@@ -33,50 +33,22 @@ with lib;
     fileSystems."/" = 
       {
         fsType = "tmpfs";
-        options = [
-          "mode=0755"
-          "noauto"
-          "x-systemd.automount"
-
-                  ];
+        options = [ "mode=0755" ];
+        neededForBoot = true;
       };
 
-    # In stage 1, mount a tmpfs on top of /nix/store (the squashfs
-    # image) to make this a live CD.
-    fileSystems."/nix/.ro-store" = 
+    fileSystems."/nix/.ro-store" =
       {
         fsType = "squashfs";
         device = "../nix-store.squashfs";
-        options = [
-          "loop"
-
-        ];
+        options = [ "loop" ];
         neededForBoot = true;
       };
     fileSystems."/nix/.rw-store" = 
       {
         fsType = "tmpfs";
-        options = [
-          "mode=0755"
-        ];
+        options = [ "mode=0755" ];
         neededForBoot = true;
-      };
-
-    fileSystems."/nix/store" = 
-      {
-        fsType = "overlay";
-        device = "overlay";
-        options = [
-          "lowerdir=/sysroot/nix/.ro-store"
-          "upperdir=/sysroot/nix/.rw-store/store"
-          "workdir=/sysroot/nix/.rw-store/work"
-        ];
-
-        depends = [
-          "/nix/.ro-store"
-          "/nix/.rw-store/store"
-          "/nix/.rw-store/work"
-        ];
       };
 
     boot.initrd.availableKernelModules = [ "squashfs" "overlay" ];

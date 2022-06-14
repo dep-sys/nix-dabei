@@ -23,25 +23,36 @@
 
     boot.initrd.kernelModules = [ "squashfs" ];
     boot.supportedFilesystems = lib.mkForce config.boot.initrd.supportedFilesystems;
-    boot.kernelParams = [ "systemd.log_level=debug" "systemd.log_target=console" "systemd.journald.forward_to_console=1" ];
+    boot.kernelParams = [ "systemd.log_level=info" "systemd.log_target=console" "systemd.journald.forward_to_console=1" ];
     systemd.package = lib.mkForce pkgs.systemdMinimal;
 
-    # There's no boot.initrd.postMountCommands with systemd.initrd
-    boot.initrd.systemd.services.overlay-helper = {
-        after = [ "sysroot-nix-.rw\\x2dstore.mount" "sysroot-nix-.ro\\x2dstore.mount" ];
-        before = [ "sysroot-nix-store.mount" ];
-        requiredBy = [ "sysroot-nix-store.mount" ];
+    boot.initrd.systemd = {
+      mounts = [{
+        where = "/sysroot/nix/store";
+        what = "overlay";
+        type = "overlay";
+        options = "lowerdir=/sysroot/nix/.ro-store,upperdir=/sysroot/nix/.rw-store/store,workdir=/sysroot/nix/.rw-store/work";
+        wantedBy = ["local-fs.target"];
+        before = ["local-fs.target"];
+        requires = ["sysroot-nix-.ro\\x2dstore.mount" "sysroot-nix-.rw\\x2dstore.mount" "rw-store.service"];
+        after = ["sysroot-nix-.ro\\x2dstore.mount" "sysroot-nix-.rw\\x2dstore.mount" "rw-store.service"];
+        unitConfig.IgnoreOnIsolate = true;
+      }];
+      services.rw-store = {
+        after = ["sysroot-nix-.rw\\x2dstore.mount"];
         unitConfig.DefaultDependencies = false;
-        serviceConfig.Type = "oneshot";
-          script = ''mkdir -p /sysroot/nix/.rw-store/store /sysroot/nix/.rw-store/work'';
+        serviceConfig = {
+          Type = "oneshot";
+          ExecStart = "/bin/mkdir -p 0755 /sysroot/nix/.rw-store/store /sysroot/nix/.rw-store/work /sysroot/nix/store";
+        };
+      };
     };
 
-    #systemd.services.overlay-helper = {
-    #    #after = [  "sysroot-nix-.rw\x2dstore.mount"  "sysroot-nix-.ro\x2dstore.mount" ];
-    #    requiredBy = [ "initrd-fs.target" ];
-    #    serviceConfig.Type = "oneshot";
-    #      script = ''mkdir -p /sysroot/nix/.rw-store/store /sysroot/nix/.rw-store/work'';
-    #};
+    systemd.tmpfiles.rules = [
+      "f /etc/NIXOS 0644 root root -"
+      "d /boot 0644 root root -"
+    ];
+
 
     services.openssh.enable = true;
 
