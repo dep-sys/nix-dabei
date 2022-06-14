@@ -60,6 +60,7 @@
       };
 
       nixosModules = {
+        base = import ./modules/base.nix;
         build = import ./modules/build.nix;
        upstream = {
           imports = [
