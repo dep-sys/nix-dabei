@@ -28,6 +28,6 @@ jobs:
       run: du -h $(nix-store -qR result) --max=0 -BM|sort -n
 
     - name: Build kexec
-    - run: nix build .#kexec
+      run: nix build .#kexec
     - name: Show size
       run: du -h $(nix-store -qR result) --max=0 -BM|sort -n
