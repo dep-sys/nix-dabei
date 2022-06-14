@@ -18,6 +18,7 @@
       enable = true;
       emergencyAccess = true;
     };
+    boot.loader.grub.enable = false;
 
     ## Disable Services
 
@@ -32,8 +33,7 @@
     system.nssModules = lib.mkForce [];
 
     ## Configure kernel and init ramdisk
-
-    boot.initrd.kernelModules = [ "squashfs" ];
+    boot.initrd.kernelModules = [ "squashfs" "loop" "overlay" ];
     boot.supportedFilesystems = lib.mkForce config.boot.initrd.supportedFilesystems;
     boot.kernelParams = [ "systemd.log_level=info" "systemd.log_target=console" "systemd.journald.forward_to_console=1" ];
 
@@ -64,5 +64,27 @@
       "f /etc/NIXOS 0644 root root -"
       "d /boot 0644 root root -"
     ];
+
+    ## Configure filesystems
+    fileSystems."/" =
+      {
+        fsType = "tmpfs";
+        options = [ "mode=0755" ];
+        neededForBoot = true;
+      };
+
+    fileSystems."/nix/.ro-store" =
+      {
+        fsType = "squashfs";
+        device = "../nix-store.squashfs";
+        options = [ "loop" ];
+        neededForBoot = true;
+      };
+    fileSystems."/nix/.rw-store" =
+      {
+        fsType = "tmpfs";
+        options = [ "mode=0755" ];
+        neededForBoot = true;
+      };
   };
 }

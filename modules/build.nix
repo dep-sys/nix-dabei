@@ -9,6 +9,15 @@ with lib;
     toplevel = config.system.build.toplevel;
     in {
 
+    system.build.runvm = pkgs.writeShellScript "runner" ''
+      exec ${pkgs.qemu_kvm}/bin/qemu-kvm -name nix-dabei -m 2048 \
+        -kernel ${kernel} -initrd ${initrd} -nographic \
+        -append "console=ttyS0 init=${toplevel}/init ${kernelParams} " -no-reboot \
+        -net nic,model=virtio \
+        -net user,net=10.0.2.0/24,host=10.0.2.2,dns=10.0.2.3,hostfwd=tcp::2222-:22 \
+        -device virtio-rng-pci
+    '';
+
     system.build.dist =
       let
         kexecScript = pkgs.writeScript "kexec-boot" ''
@@ -33,22 +42,28 @@ with lib;
           else
             kexec -e
           fi
-       ''; in
-      pkgs.linkFarm "kexec-boot" [
+       '';
+      in pkgs.linkFarm "kexec-boot" [
         { name = "initrd"; path = initrd; }
         { name = "bzImage"; path = kernel; }
         { name = "kexec-boot"; path = kexecScript; }
         { name = "command-line"; path = pkgs.writeText "command-line" kernelParams; }
       ];
 
-    system.build.runvm = pkgs.writeShellScript "runner" ''
-      exec ${pkgs.qemu_kvm}/bin/qemu-kvm -name nix-dabei -m 2048 \
-        -kernel ${kernel} -initrd ${initrd} -nographic \
-        -append "console=ttyS0 init=${toplevel}/init ${kernelParams} " -no-reboot \
-        -net nic,model=virtio \
-        -net user,net=10.0.2.0/24,host=10.0.2.2,dns=10.0.2.3,hostfwd=tcp::2222-:22 \
-        -device virtio-rng-pci
-    '';
+    system.build.netbootRamdisk = pkgs.makeInitrd {
+      inherit (config.boot.initrd) compressor;
+      prepend = [ "${config.system.build.initialRamdisk}/initrd" ];
+
+      contents =
+        [{
+          object = config.system.build.squashfsStore;
+          symlink = "/nix-store.squashfs";
+        }];
+    };
+
+    system.build.squashfsStore = pkgs.callPackage "${pkgs.path}/nixos/lib/make-squashfs.nix" {
+      storeContents = config.system.build.toplevel;
+    };
 
   };
 }
