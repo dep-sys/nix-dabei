@@ -9,24 +9,7 @@ with lib;
     toplevel = config.system.build.toplevel;
     in {
 
-    system.build.dist = pkgs.runCommand "nix-dabei-dist" { } ''
-      mkdir $out
-      cp ${kernel} $out/${kernelFile}
-      cp ${initrd} $out/initrd
-      echo "${kernelParams}" > $out/command-line
-    '';
-
-    system.build.runvm = pkgs.writeScript "runner" ''
-      #!${pkgs.stdenv.shell}
-      exec ${pkgs.qemu_kvm}/bin/qemu-kvm -name nix-dabei -m 2048 \
-        -kernel ${kernel} -initrd ${initrd} -nographic \
-        -append "console=ttyS0 init=${toplevel}/init ${kernelParams} " -no-reboot \
-        -net nic,model=virtio \
-        -net user,net=10.0.2.0/24,host=10.0.2.2,dns=10.0.2.3,hostfwd=tcp::2222-:22 \
-        -device virtio-rng-pci
-    '';
-
-    system.build.kexecBoot =
+    system.build.dist =
       let
         kexecScript = pkgs.writeScript "kexec-boot" ''
           #!/usr/bin/env bash
@@ -52,10 +35,20 @@ with lib;
           fi
        ''; in
       pkgs.linkFarm "kexec-boot" [
-        { name = "initrd.gz"; path = initrd; }
+        { name = "initrd"; path = initrd; }
         { name = "bzImage"; path = kernel; }
         { name = "kexec-boot"; path = kexecScript; }
+        { name = "command-line"; path = pkgs.writeText "command-line" kernelParams; }
       ];
+
+    system.build.runvm = pkgs.writeShellScript "runner" ''
+      exec ${pkgs.qemu_kvm}/bin/qemu-kvm -name nix-dabei -m 2048 \
+        -kernel ${kernel} -initrd ${initrd} -nographic \
+        -append "console=ttyS0 init=${toplevel}/init ${kernelParams} " -no-reboot \
+        -net nic,model=virtio \
+        -net user,net=10.0.2.0/24,host=10.0.2.2,dns=10.0.2.3,hostfwd=tcp::2222-:22 \
+        -device virtio-rng-pci
+    '';
 
   };
 }

@@ -16,7 +16,6 @@
         {
           inherit (config.system.build)
             toplevel
-            kexecBoot
             dist
             runvm;
           default = config.system.build.toplevel;
