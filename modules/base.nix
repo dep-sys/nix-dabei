@@ -50,7 +50,15 @@ with lib;
           ## Configure kernel and init ramdisk
           boot.initrd.kernelModules = [ "squashfs" "loop" "overlay" ];
           boot.supportedFilesystems = mkOverride' config.boot.initrd.supportedFilesystems;
-          boot.kernelParams = [ "systemd.log_level=info" "systemd.log_target=console" "systemd.journald.forward_to_console=1" ];
+          boot.kernelParams = [
+            "consoleblank=0"
+            "console=tty1"
+            "console=ttyS0"
+            "systemd.show_status=true"
+            "systemd.log_level=info"
+            "systemd.log_target=console"
+            "systemd.journald.forward_to_console=1"
+         ];
 
           # boot.initrd.systemd does not use boot.post*Commands, and so we need to support creating directories
           # for the overlay nix store ourselves.
