@@ -3,7 +3,11 @@
   imports = [
     "${modulesPath}/profiles/qemu-guest.nix"
     "${modulesPath}/profiles/minimal.nix"
-    "${modulesPath}/installer/kexec/kexec-boot.nix"
+  ];
+
+  disabledModules = [
+      "system/boot/systemd/logind.nix"
+      "system/boot/systemd/coredump.nix"
   ];
 
   config = {
@@ -17,7 +21,36 @@
       emergencyAccess = true;
     };
 
+    boot.initrd.kernelModules = [ "squashfs" ];
     boot.supportedFilesystems = lib.mkForce config.boot.initrd.supportedFilesystems;
+    boot.kernelParams = [ "systemd.log_level=debug" "systemd.log_target=console" "systemd.journald.forward_to_console=1" ];
+    systemd.package = lib.mkForce pkgs.systemdMinimal;
+
+    # There's no boot.initrd.postMountCommands with systemd.initrd
+    boot.initrd.systemd.services.overlay-helper = {
+        after = [  "sysroot-nix-.rw\x2dstore.mount"  "sysroot-nix-.ro\x2dstore.mount" ];
+        requiredBy = [ "sysroot-nix-store.mount" ];
+        before = [ "sysroot-nix-store.mount" ];
+        serviceConfig.Type = "oneshot";
+          script = ''mkdir -p /sysroot/nix/.rw-store/store /sysroot/nix/.rw-store/work'';
+    };
+
+    #systemd.services.overlay-helper = {
+    #    #after = [  "sysroot-nix-.rw\x2dstore.mount"  "sysroot-nix-.ro\x2dstore.mount" ];
+    #    requiredBy = [ "initrd-fs.target" ];
+    #    serviceConfig.Type = "oneshot";
+    #      script = ''mkdir -p /sysroot/nix/.rw-store/store /sysroot/nix/.rw-store/work'';
+    #};
+
+    services.openssh.enable = true;
+
+    environment.noXlibs = true;
+    security.polkit.enable = lib.mkForce false;
+    hardware.enableRedistributableFirmware = lib.mkForce false;
+    #services.dbus.enable = lib.mkForce false;
+    services.udisks2.enable = false;
+    services.timesyncd.enable = lib.mkForce false;
+
     #system.build.bootStage2 = pkgs.lib.mkForce null;
 
     networking.hostName = "nix-dabei";

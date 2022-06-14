@@ -30,37 +30,48 @@ with lib;
     #       then []
     #       else [ pkgs.grub2 pkgs.syslinux ]);
 
-    fileSystems."/" = mkImageMediaOverride
+    fileSystems."/" = 
       {
         fsType = "tmpfs";
-        options = [ "mode=0755" ];
+        options = [
+          "mode=0755"
+          "noauto"
+          "x-systemd.automount"
+
+                  ];
       };
 
     # In stage 1, mount a tmpfs on top of /nix/store (the squashfs
     # image) to make this a live CD.
-    fileSystems."/nix/.ro-store" = mkImageMediaOverride
+    fileSystems."/nix/.ro-store" = 
       {
         fsType = "squashfs";
         device = "../nix-store.squashfs";
-        options = [ "loop" ];
+        options = [
+          "loop"
+
+        ];
         neededForBoot = true;
       };
-
-    fileSystems."/nix/.rw-store" = mkImageMediaOverride
+    fileSystems."/nix/.rw-store" = 
       {
         fsType = "tmpfs";
-        options = [ "mode=0755" ];
+        options = [
+          "mode=0755"
+        ];
         neededForBoot = true;
       };
 
-    fileSystems."/nix/store" = mkImageMediaOverride
+    fileSystems."/nix/store" = 
       {
         fsType = "overlay";
         device = "overlay";
         options = [
-          "lowerdir=/nix/.ro-store"
-          "upperdir=/nix/.rw-store/store"
-          "workdir=/nix/.rw-store/work"
+          "noauto"
+          "x-systemd.automount"
+          "lowerdir=/sysroot/nix/.ro-store"
+          "upperdir=/sysroot/nix/.rw-store/store"
+          "workdir=/sysroot/nix/.rw-store/work"
         ];
 
         depends = [

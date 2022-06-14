@@ -26,16 +26,16 @@ in
 #    boot.kernelParams = [ "systemConfig=${config.system.build.toplevel}" ];
 #    boot.kernelPackages = lib.mkDefault pkgs.linuxPackages;
 
-#    system.build.runvm = pkgs.writeScript "runner" ''
-#      #!${pkgs.stdenv.shell}
-#      exec ${pkgs.qemu_kvm}/bin/qemu-kvm -name nix-dabei -m 512 \
-#        -kernel ${config.system.build.kernel}/bzImage -initrd ${config.system.build.netbootRamdisk}/initrd -nographic \
-#        -append "console=ttyS0 ${toString config.boot.kernelParams} quiet panic=-1" -no-reboot \
-#        -net nic,model=virtio \
-#        -net user,net=10.0.2.0/24,host=10.0.2.2,dns=10.0.2.3,hostfwd=tcp::2222-:22 \
-#        -device virtio-rng-pci
-#    '';
-#
+    system.build.runvm = pkgs.writeScript "runner" ''
+      #!${pkgs.stdenv.shell}
+      exec ${pkgs.qemu_kvm}/bin/qemu-kvm -name nix-dabei -m 2048 \
+        -kernel ${config.system.build.kernel}/bzImage -initrd ${config.system.build.netbootRamdisk}/initrd -nographic \
+        -append "console=ttyS0 init=${config.system.build.toplevel}/init ${toString config.boot.kernelParams} " -no-reboot \
+        -net nic,model=virtio \
+        -net user,net=10.0.2.0/24,host=10.0.2.2,dns=10.0.2.3,hostfwd=tcp::2222-:22 \
+        -device virtio-rng-pci
+    '';
+
     system.build.dist = pkgs.runCommand "nix-dabei-dist" { } ''
       mkdir $out
       cp ${config.system.build.kernel}/${config.system.boot.loader.kernelFile} $out/bzImage
