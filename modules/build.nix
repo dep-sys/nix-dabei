@@ -25,7 +25,7 @@ with lib;
           TO_INSTALL=""
           command -v kexec || TO_INSTALL="kexec-tools $TO_INSTALL"
           if [ -n "$TO_INSTALL" ]; then
-            if [ command -v apt ]; then
+            if command -v apt; then
               echo "apt found, but no $TO_INSTALL. Installing..."
               apt update -y && DEBIAN_FRONTEND=noninteractive apt install -y $TO_INSTALL
             else
