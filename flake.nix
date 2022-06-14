@@ -5,7 +5,7 @@
   outputs = { self, nixpkgs }:
     let
       system = "x86_64-linux";
-      pkgs = import nixpkgs { inherit system; overlays = [ self.overlays.default ]; };
+      pkgs = import nixpkgs { inherit system; };
     in
     {
       packages.${system} =
@@ -45,19 +45,32 @@
         buildInputs = with pkgs; [ nix-tree nvd ];
       };
 
-      overlays.default = _final: prev: {
-       gitMicro = (prev.gitMinimal.override {
-          perlSupport = false;
-          withManual = false;
-          pythonSupport = false;
-          withpcre2 = false;
-        }).overrideAttrs (_: { doInstallCheck = false; });
-      };
-
       nixosConfigurations.default = nixpkgs.lib.nixosSystem {
         inherit system pkgs;
         modules = [ ./configuration.nix ] ++ pkgs.lib.attrValues self.nixosModules;
       };
+
+      nixosConfigurations.with-minimal-git =
+        let
+          gitMicro = (pkgs.gitMinimal.override {
+            perlSupport = false;
+            withManual = false;
+            pythonSupport = false;
+            withpcre2 = false;
+          }).overrideAttrs (_: { doInstallCheck = false; });
+
+        in nixpkgs.lib.nixosSystem {
+          inherit system pkgs;
+          modules = [
+            ./configuration.nix
+            ({pkgs, ...}: {
+              environment.systemPackages = [
+                pkgs.gitMicro
+              ];
+            })
+          ] ++ pkgs.lib.attrValues self.nixosModules;
+        };
+
 
       nixosModules = {
         base = import ./modules/base.nix;
