@@ -59,7 +59,7 @@
     environment.noXlibs = true;
     security.polkit.enable = lib.mkForce false;
     hardware.enableRedistributableFirmware = lib.mkForce false;
-    #services.dbus.enable = lib.mkForce false;
+    services.dbus.enable = lib.mkForce false;
     services.udisks2.enable = false;
     services.timesyncd.enable = lib.mkForce false;
 
