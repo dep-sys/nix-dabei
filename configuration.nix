@@ -5,9 +5,13 @@
   ];
 
   config = {
-    networking.hostName = "nix-dabei";
-    networking.nameservers = [ "1.1.1.1" ];
     environment.systemPackages = [ ];
+    networking = {
+      hostName = "nix-dabei";
+
+      nameservers = [ "1.1.1.1" ];
+      usePredictableInterfaceNames = true;
+    };
     services.openssh.enable = true;
     environment.etc = {
       "ssh/authorized_keys.d/root" = {
@@ -18,6 +22,8 @@
       };
     };
 
+    i18n.defaultLocale = "en_US.UTF-8";
+    time.timeZone = "UTC";
     system.stateVersion = "22.05";
   };
 }
