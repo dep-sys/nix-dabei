@@ -75,14 +75,6 @@
       nixosModules = {
         base = import ./modules/base.nix;
         build = import ./modules/build.nix;
-        # Let the generated operating system use our nixpkgs and overlay,
-        # but still allow flake users to provide their own.
-        nixpkgs = {
-          config.nixpkgs = {
-            inherit pkgs;
-            localSystem = { inherit system; };
-          };
-        };
       };
     };
 }
