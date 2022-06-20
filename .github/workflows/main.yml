@@ -1,22 +1,31 @@
-name: "Fill Cache"
+name: "Build & Fill Cache"
 on:
   push:
-    branches:
-      - main
 jobs:
   tests:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: cachix/install-nix-action@v17
-      with:
-        nix_path: nixpkgs=channel:nixos-unstable
-    - uses: cachix/cachix-action@v10
+    - name: Checkout repo
+      uses: actions/checkout@v3
+    - name: Install nix
+      uses: cachix/install-nix-action@v17
+    - name: Setup Cache
+      uses: cachix/cachix-action@v10
       with:
         name: nix-dabei
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-    - run: nix build .#toplevel
-    - run: du -h $(nix-store -qR result) --max=0 -BM|sort -n
-    - run: nix build .#dist
-    - run: nix build .#kexec
+
+    - name: Build toplevel
+      run: nix build -L .#toplevel
+    - name: Show size
+      run: du -h $(nix-store -qR result) --max=0 -BM|sort -n
+
+    - name: Build dist
+      run: nix build -L .#dist
+    - name: Show size
+    - run: du -Lh  result/*
+
+    - name: Build kexec
+      run: nix build -L .#kexec
+    - name: Show size
     - run: du -Lh  result/*
