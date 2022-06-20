@@ -24,8 +24,3 @@ jobs:
       run: nix build -L .#dist
     - name: Show size
       run: du -Lh  result/*
-
-    - name: Build kexec
-      run: nix build -L .#kexec
-    - name: Show size
-      run: du -Lh  result/*
