@@ -12,12 +12,14 @@
         with pkgs;
         let
          config = self.nixosConfigurations.default.config;
+         tests = (import ./tests.nix { inherit pkgs; inherit (self) nixosModules; });
         in
         {
           inherit (config.system.build)
             toplevel
             dist
             runvm;
+          inherit tests;
           default = config.system.build.toplevel;
         };
 
