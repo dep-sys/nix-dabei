@@ -12,16 +12,18 @@
         with pkgs;
         let
          config = self.nixosConfigurations.default.config;
-         tests = (import ./tests.nix { inherit pkgs; inherit (self) nixosModules; });
+         tests = pkgs.lib.mapAttrs'
+           (n: v: pkgs.lib.nameValuePair "test-${n}" v)
+           (import ./tests.nix { inherit nixpkgs system self; });
+
         in
         {
           inherit (config.system.build)
             toplevel
             dist
             runvm;
-          inherit tests;
           default = config.system.build.toplevel;
-        };
+        } // tests;
 
       apps.${system} =
         let
@@ -72,7 +74,6 @@
             })
           ] ++ pkgs.lib.attrValues self.nixosModules;
         };
-
 
       nixosModules = {
         base = import ./modules/base.nix;
