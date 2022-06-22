@@ -63,6 +63,7 @@ with lib;
           # boot.initrd.systemd does not use boot.post*Commands, and so we need to support creating directories
           # for the overlay nix store ourselves.
           #
+          # TODO check if the following commands are needed or if the nix store works as expected
           #boot.postBootCommands =
           #  ''
           #    # After booting, register the contents of the Nix store

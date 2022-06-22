@@ -17,7 +17,7 @@ I was looking for a generic way to install NixOS systems from [flakes][flakes] o
 
 Luckily, `kexec`uting a NixOS kernel and init ramdisk from a rescue system works fine. So we can use custom kernels and userland tools, including modern nix with flakes enabled, to install NixOS.
 
-It ****should** work for other cloud providers and environments, such as rasperrrypi as well, but that's not really tested yet. Contributions welcome!
+It **should** work for other cloud providers and environments, such as rasperrrypi as well, but that's not really tested yet. Contributions welcome!
 :tada:
 
 # Tasks / What's left?

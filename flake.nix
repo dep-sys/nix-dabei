@@ -37,7 +37,7 @@
             vm = { program = self.packages.${system}.runvm; };
           };
           makeSimpleApp = program:
-            { type = "app"; programm = toString program; };
+            { type = "app"; program = toString program; };
           makeShellScript = name: content:
             makeSimpleApp (pkgs.writeScript name content);
           makePackageApp = name: { program ? null }:
