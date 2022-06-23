@@ -21,6 +21,7 @@ with lib;
           nix.extraOptions = "extra-experimental-features = nix-command flakes";
 
           systemd.package = mkOverride' pkgs.systemdMinimal;
+          systemd.shutdownRamfs.enable = mkOverride' false;
           boot.initrd.systemd = {
             enable = true;
             emergencyAccess = true;
