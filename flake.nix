@@ -14,7 +14,7 @@
          config = self.nixosConfigurations.default.config;
          tests = pkgs.lib.mapAttrs'
            (n: v: pkgs.lib.nameValuePair "test-${n}" v)
-           (import ./tests.nix { inherit nixpkgs system self; });
+           (import ./tests.nix { inherit pkgs system self; });
 
         in
         {

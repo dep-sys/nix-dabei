@@ -1,12 +1,11 @@
-{ nixpkgs, system, self }:
+{ pkgs, system, self }:
 let
-  lib = nixpkgs.lib;
+  lib = pkgs.lib;
   extraConfigurations = [
     ./configuration.nix
     ({ networking.usePredictableInterfaceNames = lib.mkForce false; })
   ] ++ lib.attrValues self.nixosModules;
-  testTools = import (nixpkgs + "/nixos/lib/testing-python.nix") { inherit system extraConfigurations; };
-  pkgs = import (nixpkgs) { inherit system; };
+  testTools = import (pkgs.path + "/nixos/lib/testing-python.nix") { inherit system extraConfigurations; };
 
 
   mkTest = nodes: testScript:
