@@ -30,7 +30,6 @@ It **should** work for other cloud providers and environments, such as rasperrry
 
 ## ZFS support and PoC partitioner
 
-* include zfs kernel and runtime
 * implement partitioner (single disk)
 * implement example with encrypted boot
 * implement partitioner and test for mirrored layouts
