@@ -49,7 +49,7 @@
       # E.g. ext4 for hetzner.cloud, presumably to allow our kexec'ed
       # kernel to load its initrd.
       supportedFilesystems = [
-        "vfat" "ext4"
+        "vfat" "ext4" "zfs"
       ];
       # We aim to provide a default set of kernel modules which should
       # support functionality for nixos installers on generic cloud
@@ -74,6 +74,12 @@
         "sr_mod"  # SCSI cdrom support
       ];
    };
+
+   # Enable ZFS support using the unstable package. There is rarely a
+   # version difference between stable & unstable, but maybe unstable pulls
+   # in some hypothetical future fix earlier than stable.
+   boot.kernelPackages = pkgs.zfsUnstable.latestCompatibleLinuxPackages;
+   boot.zfs.enableUnstable = true;
 
    # Nix-dabei isn't intended to keep state, but NixOS wants
    # it defined and it does not hurt. You are still able to
