@@ -77,6 +77,7 @@
 
       nixosModules = {
         base = import ./modules/base.nix;
+        initrd = import ./modules/initrd.nix;
         build = import ./modules/build.nix;
       };
     };
