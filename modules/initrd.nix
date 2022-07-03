@@ -1,5 +1,4 @@
-{lib, ...}: {
-
+{ lib, config, ... }: {
   ## Configure kernel and init ramdisk
   ##
   boot.initrd = {
@@ -9,7 +8,8 @@
     # kernel to load its initrd.
     supportedFilesystems = [
       "vfat" "ext4"
-    ];
+    ]
+    ++ lib.optionals config.nix-dabei.zfs.enable [ "zfs" ];
     # We aim to provide a default set of kernel modules which should
     # support functionality for nixos installers on generic cloud
     # hosts as well as bare metal machines.

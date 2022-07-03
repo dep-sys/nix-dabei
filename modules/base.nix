@@ -11,6 +11,10 @@ with lib;
     "system/boot/systemd/coredump.nix"
   ];
 
+  options.nix-dabei = {
+    zfs.enable = mkEnableOption "enable ZFS";
+  };
+
   config =
     let
       # default is 100, mkForce is 50
@@ -30,7 +34,7 @@ with lib;
 
           boot.loader.grub.enable = mkOverride' false;
           boot.supportedFilesystems = mkOverride' config.boot.initrd.supportedFilesystems;
-          boot.kernelParams = [
+          boot.kernelParams = mkOverride' [
             "consoleblank=0"
             "console=tty1"
             "console=ttyS0"
@@ -39,7 +43,13 @@ with lib;
             "systemd.log_target=console"
             "systemd.journald.forward_to_console=1"
           ];
+        }
 
+        (mkIf (config.nix-dabei.zfs.enable) {
+          boot.kernelPackages = mkOverride' pkgs.zfs.latestCompatibleLinuxPackages;
+        })
+
+        {
           fileSystems = {
             "/" =
               {
