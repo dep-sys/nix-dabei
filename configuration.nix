@@ -43,6 +43,44 @@
       usePredictableInterfaceNames = true;
     };
 
+    boot.initrd = {
+      # Besides the file systems used for installation of our nixos
+      # instances, we might need additional ones for kexec to work.
+      # E.g. ext4 for hetzner.cloud, presumably to allow our kexec'ed
+      # kernel to load its initrd.
+      supportedFilesystems = [
+        "vfat" "ext4" "zfs"
+      ];
+      # We aim to provide a default set of kernel modules which should
+      # support functionality for nixos installers on generic cloud
+      # hosts as well as bare metal machines.
+      # TODO: Can surely be improved/specialized to save a few bytes.
+      # more low-hanging fruit atm, but patches welcome!
+      kernelModules = lib.mkForce [
+        "squashfs"
+        "loop"
+        "overlay"
+        "virtio_console"
+        "virtio_rng"
+      ];
+      availableKernelModules = [
+        "virtio_net"
+        "virtio_blk"
+        "virtio_pci"
+        "virtio_scsi"
+        "ata_piix" # Intel PATA/SATA controllers
+        "xhci_pci" # USB Extensible Host Controller Interface
+        "sd_mod"  # SCSI disk support
+        "sr_mod"  # SCSI cdrom support
+      ];
+   };
+
+   # Enable ZFS support using the unstable package. There is rarely a
+   # version difference between stable & unstable, but maybe unstable pulls
+   # in some hypothetical future fix earlier than stable.
+   boot.kernelPackages = pkgs.zfsUnstable.latestCompatibleLinuxPackages;
+   boot.zfs.enableUnstable = true;
+
    # Nix-dabei isn't intended to keep state, but NixOS wants
    # it defined and it does not hurt. You are still able to
    # install any realease with the images built.
