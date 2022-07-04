@@ -20,33 +20,6 @@ Luckily, `kexec`uting a NixOS kernel and init ramdisk from a rescue system works
 It **should** work for other cloud providers and environments, such as rasperrrypi as well, but that's not really tested yet. Contributions welcome!
 :tada:
 
-# Tasks / What's left?
-
-## Automated Tests
-
-## 0-click provisioning (hetzner cloud)
-
-* Write bootstraping/seeding scripts for hetzner
-
-## ZFS support and PoC partitioner
-
-* implement partitioner (single disk)
-* implement example with encrypted boot
-* implement partitioner and test for mirrored layouts
-
-## Reduce Closure Size
-
-* check why perl seems to be included in toplevel? 
-* explore using systemd-minimal now that systemd in stage-1 has landed.
-* dive deeper into initrd generation:
-  * can we do without squashfs? I think yes
-
-## Documentation & Tooling
-
-* add options submodule to customize vm runner
-  (e.g. add more ram, disable networking, boot devices, etc)
-* write new documentation tooling, look into what colmena and friends are doing
-
 # Usage / What can I do with? 
 
 ## Run virtual machine
