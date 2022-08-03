@@ -67,7 +67,7 @@ in
       zfs.forceImportRoot = false; # kernelParms = ["zfs_force=1"];
       zfs.devNodes = "/dev/";
       growPartition = true;
-      boot.kernelParams = [ "elevator=none" ];
+      kernelParams = [ "elevator=none" ];
       loader = {
         timeout = 1;
         efi.canTouchEfiVariables = lib.mkDefault false;
