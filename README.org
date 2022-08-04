@@ -1,0 +1,7 @@
+* TODO fix autoexpand script
+    zpool executable was missing for service
+* TODO merge into nix-dabei
+* TODO investigate writing a configuration.nix
+* TODO finish test-vm-hetzner.sh
+* TODO enable ntpd
+* TODO ipv6 support
