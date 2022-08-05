@@ -5,8 +5,14 @@ let
 in
 {
   options.x.storage.zfs = {
+    enable = lib.mkOption {
+      type = lib.types.bool;
+      description = lib.mdDoc "Whether this system uses openzfs.org";
+      default = true;
+    };
+
     datasets = lib.mkOption {
-      description = ''
+      description = lib.mdDoc ''
             Datasets to create under the `tank` and `boot` zpools.
 
             **NOTE:** This option is used only at image creation time, and

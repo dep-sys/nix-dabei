@@ -37,7 +37,6 @@
                 };
                 rootPoolFilesystemProperties = {
                   acltype = "posixacl";
-                  #canmount = "off";
                   compression = "zstd";
                   dnodesize = "auto";
                   normalization="formD";
@@ -81,28 +80,14 @@
                 "${modulesPath}/profiles/qemu-guest.nix"
                 "${modulesPath}/profiles/headless.nix"
               ];
-              services.nginx.enable = true;
+
               # Enable the serial console on tty1
               systemd.services."serial-getty@tty1".enable = true;
 
-              x.storage.zfs.enable = true;
-              # Force getting the hostname from Hetzner Cloud metadata.
-              # networking.hostName = lib.mkDefault "";
-
-
-              boot.kernelParams = [
-                "boot.panic_on_fail"
-                "stage1panic"
-                "consoleblank=0"
-                "systemd.show_status=true"
-                "systemd.log_level=info"
-                "systemd.log_target=console"
-                "systemd.journald.forward_to_console=1"
-                #"console=ttyS0"
-                "console=tty1"
+              environment.systemPackages = with pkgs; lib.mkDefault [
+                vim tmux htop ncdu curl dnsutils jq fd ripgrep gawk gnused git
               ];
-
-            }));
+           }));
         };
 
       };
