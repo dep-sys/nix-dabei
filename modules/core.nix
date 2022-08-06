@@ -1,6 +1,7 @@
 { pkgs, lib, config, inputs, ... }: {
   imports = [
     ./nix.nix
+    ./instance-data.nix
   ];
 
   options.x = {
