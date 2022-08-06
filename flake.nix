@@ -44,7 +44,7 @@
               import "${inputs.nixpkgs}/nixos/lib/make-single-disk-zfs-image.nix" {
                 inherit config pkgs;
                 inherit (pkgs) lib;
-                inherit (config.x.image) format;
+                inherit (config.x.storage.image) format;
                 inherit (config.x.storage.zfs) rootPoolProperties rootPoolFilesystemProperties datasets;
               });
         };
