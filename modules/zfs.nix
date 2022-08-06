@@ -11,6 +11,42 @@ in
       default = true;
     };
 
+    # TODO customizable tank names depend on a scheme to know host-id while building the image :/
+    # this would be nice as an optional feature.
+    #rootPoolName = "tank-${config.networking.hostId}";
+
+    rootPoolProperties = lib.mkOption {
+      description = lib.mdDoc ''
+        properties of the zfs root pool, things you'd pass to zpool create -O.
+
+        rootPoolProperties are mostly cargo-culted from
+        https://openzfs.github.io/openzfs-docs/Getting%20Started/NixOS/Root%20on%20ZFS/2-system-installation.html
+        and may require adaption for your setup. E.g. try lz4 for less cpu consumption and a bit less
+        compression.
+      '';
+      type = lib.types.attrs;
+      default = {
+        ashift = 12;
+        autotrim = "on";
+        autoexpand = "on";
+      };
+    };
+
+    rootPoolFilesystemProperties = lib.mkOption {
+      description = lib.mdDoc ''
+        file system properties of the zfs root pool, things you'd pass to zpool create -o.
+     '';
+      type = lib.types.attrs;
+      default = {
+        acltype = "posixacl";
+        compression = "zstd";
+        dnodesize = "auto";
+        normalization="formD";
+        relatime = "on";
+        xattr = "sa";
+      };
+    };
+
     datasets = lib.mkOption {
       description = lib.mdDoc ''
             Datasets to create under the `tank` and `boot` zpools.

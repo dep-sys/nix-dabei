@@ -17,34 +17,10 @@
         # system.
 
         packages = {
-          zfsImage =
-            let
-              inherit (self.nixosConfigurations.default) config;
-            in
-              import "${pkgs.path}/nixos/lib/make-single-disk-zfs-image.nix" {
-                inherit config pkgs;
-                inherit (pkgs) lib;
-                format = "qcow2-compressed";
-                #rootPoolName = "tank-${config.networking.hostId}";
-                # rootPool properties are mostly cargo-culted from
-                # https://openzfs.github.io/openzfs-docs/Getting%20Started/NixOS/Root%20on%20ZFS/2-system-installation.html
-                # and may require adaption for your setup. E.g. try lz4 for less cpu consumption and a bit less
-                # compression.
-                rootPoolProperties = {
-                  ashift = 12;
-                  autotrim = "on";
-                  autoexpand = "on";
-                };
-                rootPoolFilesystemProperties = {
-                  acltype = "posixacl";
-                  compression = "zstd";
-                  dnodesize = "auto";
-                  normalization="formD";
-                  relatime = "on";
-                  xattr = "sa";
-                };
-                datasets = self.nixosConfigurations.default.config.x.storage.zfs.datasets;
-              };
+          zfsImage = self.lib.makeZFSImage {
+            inherit system;
+            inherit (self.nixosConfigurations.default) config;
+          };
         };
 
         devShells = {
@@ -62,6 +38,16 @@
 
       };
       flake = {
+        lib = {
+          makeZFSImage = { system, config }:
+            withSystem system (ctx@{ pkgs, ... }:
+              import "${inputs.nixpkgs}/nixos/lib/make-single-disk-zfs-image.nix" {
+                inherit config pkgs;
+                inherit (pkgs) lib;
+                inherit (config.x.image) format;
+                inherit (config.x.storage.zfs) rootPoolProperties rootPoolFilesystemProperties datasets;
+              });
+        };
 
         nixosModules = {
           core = ./modules/core.nix;

@@ -7,6 +7,7 @@
   options.x = {
     toml = lib.mkOption {
       description = lib.mdDoc "read site-specific info from config toml";
+      type = lib.types.anything;
       readOnly = true;
       default = let
         configPath = "${inputs.self.outPath}/config.toml";
@@ -22,9 +23,19 @@
     };
 
     boot.efi = lib.mkOption {
-      type = lib.types.bool;
       description = lib.mdDoc "Whether the target system boots via EFI or legacy boot.";
+      type = lib.types.bool;
       default = false;
+    };
+
+    storage.image.format = lib.mkOption {
+      description = lib.mdDoc ''
+        format of the disk image to build.
+        Use "qcow2-compressed" to optimize for transferred bandwidth if qemu-img is available remotely,
+        or use "raw" to `ssh $HOST "cat > /dev/vda"` directly if disk space in live system is thight.
+      '';
+      type = lib.types.enum [ "qcow2" "qcow2-compressed" "vdi" "vpc" "raw"  ];
+      default = "qcow2-compressed";
     };
   };
 
