@@ -12,8 +12,8 @@ let
     hcloud = {
       description = "hetzner.cloud, see https://docs.hetzner.cloud/#server-metadata";
       fetchInstanceData = pkgs.writeShellScript "fetch-instance-data-hetzner" ''
-          ${pkgs.curl}/bin/curl -s http://169.254.169.254/hetzner/v1/metadata/ \
-          ${pkgs.yq}/bin/yq '.' \
+          ${pkgs.curl}/bin/curl -s http://169.254.169.254/hetzner/v1/metadata \
+          | ${pkgs.yq}/bin/yq '.' \
           > ${cfg.path}
       '';
     };
@@ -66,7 +66,7 @@ in
         # Look for commited instance-data inside our flake in pure mode, and outside at `cfg.path` in impure
         # mode. Give up and return `null` if neither is found.
         if lib.inPureEvalMode
-        then maybeGetInstanceData ./foo
+        then maybeGetInstanceData ./foo # TODO make host-specific
         else maybeGetInstanceData cfg.path;
     };
   };
