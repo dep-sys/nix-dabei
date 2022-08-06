@@ -2,10 +2,16 @@
 let
   cfg = config.x.instance-data;
 
+  # Look for json-serialized instance data at `path` and load it if it exists.
+  maybeGetInstanceData = path:
+    if builtins.pathExists path
+    then builtins.fromJSON (builtins.readFile path)
+    else null;
+
   providers = {
     hcloud = {
       description = "hetzner.cloud, see https://docs.hetzner.cloud/#server-metadata";
-      fetchInstanceData = lib.writeScript "fetch-instance-data-hetzner" ''
+      fetchInstanceData = pkgs.writeShellScript "fetch-instance-data-hetzner" ''
           ${pkgs.curl}/bin/curl -s http://169.254.169.254/hetzner/v1/metadata/ \
           ${pkgs.yq}/bin/yq '.' \
           > ${cfg.path}
@@ -26,8 +32,6 @@ in
       description = lib.mdDoc "Whether to fetch instance-data from a cloud provider on startup.";
       default = "hcloud";
     };
-
-
 
     onlyOnce = lib.mkOption {
       type = lib.types.bool;
@@ -59,8 +63,11 @@ in
           instance data as fetched from a cloud-provider and stored at `instance-data.path`, deserialized.
       '';
       default =
-        let tryInstanceData = builtins.tryEval (builtins.fromJSON (builtins.readFile cfg.path));
-        in if tryInstanceData.success then tryInstanceData.value else null;
+        # Look for commited instance-data inside our flake in pure mode, and outside at `cfg.path` in impure
+        # mode. Give up and return `null` if neither is found.
+        if lib.inPureEvalMode
+        then maybeGetInstanceData ./foo
+        else maybeGetInstanceData cfg.path;
     };
   };
 
@@ -71,7 +78,7 @@ in
       ## Shared logic
       (lib.mkIf (cfg.enable) {
         systemd.services.fetch-instance-data = {
-          script = providers.${cfg.provider}.fetchInstanceData;
+          script = builtins.toString providers.${cfg.provider}.fetchInstanceData;
           description = "Fetch instance data from ${cfg.provider} on startup";
 
           wantedBy = [ "multi-user.target" ];
@@ -79,7 +86,6 @@ in
           # We need to have *some* network connection atm to reach hetzners metadata server.
           # DHCP works well enough for the moment.
           requires = [ "network-online.target" ];
-
 
           restartIfChanged = false;
           unitConfig.X-StopOnRemoval = false;
