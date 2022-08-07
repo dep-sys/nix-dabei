@@ -77,74 +77,96 @@ in {
     };
   };
 
-  config =
-    let
-      services = {
-        make = {script, description, mixins}:
-          lib.foldr lib.recursiveUpdate {inherit script description;} mixins;
-        mixins = {
-          isIsolated = {
-            serviceConfig = {
-              TemporaryFileSystem = "/";
-            };
+  config = let
+    services = {
+      make = {
+        script,
+        description,
+        mixins,
+      }:
+        lib.foldr lib.recursiveUpdate {inherit script description;} mixins;
+      mixins = {
+        # TODO check if https://github.com/NixOS/nixpkgs/blob/nixos-22.05/nixos/modules/security/systemd-confinement.nix
+        # is an alternative
+        #isIsolated = {
+        #  serviceConfig = {
+        #    TemporaryFileSystem = "/";
+        #  };
+        #};
+        isOneShot = {
+          restartIfChanged = false;
+          unitConfig.X-StopOnRemoval = false;
+          serviceConfig = {
+            Type = "oneshot";
+            RemainAfterExit = true;
           };
-          isOneShot = {
-            restartIfChanged = false;
-            unitConfig.X-StopOnRemoval = false;
-            serviceConfig = {
-              Type = "oneshot";
-              RemainAfterExit = true;
-            };
-          };
-          needsMultiUser = {
-            wantedBy = ["multi-user.target"];
-            after = ["multi-user.target"];
-          };
-          needsNetworking = {
-            # We need to have *some* network connection atm to reach hetzners metadata server.
-            # DHCP works well enough for the moment.
-            requires = ["network-online.target"];
-          };
-          needsPath = path: {serviceConfig.ConditionPathExists = path; };
-          writesPath = path: {serviceConfig.BindPaths = path; };
         };
+        neededByMultiUser = {
+          wantedBy = ["multi-user.target"];
+        };
+        needsNetworking = {
+          # We need to have *some* network connection atm to reach hetzners metadata server.
+          # DHCP works well enough for the moment.
+          requires = ["network-online.target"];
+        };
+        needsPath = path: {serviceConfig.ConditionPathExists = path;};
+        #writesPath = path: {serviceConfig.BindPaths = path; };
+        #readsPath = path: {serviceConfig.BindReadOnlyPaths = path; };
       };
-    in
-      lib.mkMerge [
-        ## Shared logic
-        (lib.mkIf cfg.enable {
-          systemd.services = {
-            fetch-instance-data = services.make {
-              description = "Fetch instance data from ${cfg.provider} on startup";
-              script = builtins.toString providers.${cfg.provider}.fetchInstanceData;
-              mixins = with services.mixins; [
-                isOneShot
-                isIsolated
-                needsMultiUser
-                needsNetworking
-                (needsPath (if cfg.onlyOnce then "!${cfg.path}" else null))
-                (writesPath cfg.path)
-              ];
-            };
-            rebuild-with-instance-data = services.make {
-              description = "Rebuild the host with live-instance data from ${cfg.provider} on startup";
-              script = ''
-                  host_name=$(${pkgs.jq}/bin/jq -r .hostname ${cfg.path} 2>/dev/null || echo default")
-
-                  ${pkgs.nixos-rebuild}/bin/nixos-rebuild \
-                      switch \
-                      ${lib.optionalString cfg.upgradeOnChange "--upgrade"} \
-                      --impure \
-                      --flake \
-                      ".#$host_name"
-               '';
-            };
+    };
+  in
+    lib.mkMerge [
+      ## Shared logic
+      (lib.mkIf cfg.enable {
+        systemd.services = {
+          fetch-instance-data = services.make {
+            description = "Fetch instance data from ${cfg.provider} on startup";
+            script = builtins.toString providers.${cfg.provider}.fetchInstanceData;
+            mixins = with services.mixins; [
+              isOneShot
+              #isIsolated
+              neededByMultiUser
+              needsNetworking
+              (needsPath (
+                if cfg.onlyOnce
+                then "!${cfg.path}"
+                else null
+              ))
+              #(writesPath cfg.path)
+            ];
           };
-        })
+          rebuild-with-instance-data = services.make {
+            description = "Rebuild the host with live-instance data from ${cfg.provider} on startup";
+            script = ''
+              host_name=$(${pkgs.jq}/bin/jq -r .hostname ${cfg.path} 2>/dev/null || echo "default")
+              ${lib.optionalString cfg.onlyOnce ''
+                if [ "$(hostname)" == "$host_name" ]
+                then
+                  echo "Hostname matches instance-data, host might already have been configured. Exiting."
+                  exit 0
+                fi
+                echo "Setting up $host_name"
+              ''}
+              ${pkgs.nixos-rebuild}/bin/nixos-rebuild \
+                  switch \
+                  ${lib.optionalString cfg.upgradeOnChange "--upgrade"} \
+                  --impure \
+                  --flake \
+                  ".#$host_name"
+            '';
+            mixins = with services.mixins; [
+              isOneShot
+              needsNetworking
+              (needsPath cfg.path)
+              #(readsPath cfg.path)
+            ];
+          };
+        };
+      })
 
-        ## hcloud support
-        (lib.mkIf (cfg.enable && cfg.provider == "hcloud" && cfg.data != null) {
-          networking.hostName = lib.mkDefault cfg.data.hostname;
-        })
-      ];
+      ## hcloud support
+      (lib.mkIf (cfg.enable && cfg.provider == "hcloud" && cfg.data != null) {
+        networking.hostName = lib.mkDefault cfg.data.hostname;
+      })
+    ];
 }
