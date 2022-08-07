@@ -166,7 +166,24 @@ in {
 
       ## hcloud support
       (lib.mkIf (cfg.enable && cfg.provider == "hcloud" && cfg.data != null) {
-        networking.hostName = lib.mkDefault cfg.data.hostname;
+        users.motd = with cfg.data; lib.mkDefault "Welcome to ${hostname} (#${builtins.toString instance-id}) in ${availability-zone} (${region}).";
+
+        networking =
+          let
+            ipv6Config = (lib.filter (v: v ? ipv6 && v.ipv6) (lib.head cfg.data.network-config.config).subnets);
+            ipv6AddressParts = lib.splitString ipv6Config.address;
+            interface = "ens3"; # TODO: continue to use predictable interfaces or use eth0 from json here?
+          in {
+            hostName = lib.mkDefault cfg.data.hostname;
+            interfaces.${interface}.ipv6.addresses = [{
+              address = builtins.elemAt ipv6AddressParts 0;
+              prefixLength = lib.toInt (builtins.elemAt ipv6AddressParts 1);
+            }];
+            defaultGateway6 = {
+              inherit interface;
+              address = ipv6Config.gateway;
+            };
+          };
       })
     ];
 }
