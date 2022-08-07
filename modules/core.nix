@@ -1,4 +1,10 @@
-{ pkgs, lib, config, inputs, ... }: {
+{
+  pkgs,
+  lib,
+  config,
+  inputs,
+  ...
+}: {
   imports = [
     ./nix.nix
     ./instance-data.nix
@@ -13,7 +19,7 @@
         configPath = "${inputs.self.outPath}/config.toml";
       in
         assert (builtins.pathExists configPath);
-        lib.importTOML "${inputs.self.outPath}/config.toml";
+          lib.importTOML "${inputs.self.outPath}/config.toml";
     };
 
     admins = lib.mkOption {
@@ -34,15 +40,21 @@
         Use "qcow2-compressed" to optimize for transferred bandwidth if qemu-img is available remotely,
         or use "raw" to `ssh $HOST "cat > /dev/vda"` directly if disk space in live system is thight.
       '';
-      type = lib.types.enum [ "qcow2" "qcow2-compressed" "vdi" "vpc" "raw"  ];
+      type = lib.types.enum ["qcow2" "qcow2-compressed" "vdi" "vpc" "raw"];
       default = "qcow2-compressed";
     };
   };
 
   config = {
     assertions = [
-      { assertion = !config.x.boot.efi; message = "EFI support is planned, but not implemented yet."; }
-      { assertion = config.x.storage.zfs.enable; message = "We are open to other file systems, but atm only ZFS is supported."; }
+      {
+        assertion = !config.x.boot.efi;
+        message = "EFI support is planned, but not implemented yet.";
+      }
+      {
+        assertion = config.x.storage.zfs.enable;
+        message = "We are open to other file systems, but atm only ZFS is supported.";
+      }
     ];
 
     # Let 'nixos-version --json' know about the Git revision of this flake.
@@ -51,18 +63,21 @@
 
     users = {
       mutableUsers = lib.mkDefault false;
-      users = {
-        root = {
-          isSystemUser = true;
-          openssh.authorizedKeys.keys = lib.flatten (lib.attrValues config.x.admins);
-        };
-      } // (
-        lib.mapAttrs (name: keys: {
-          isNormalUser = true;
-          extraGroups = [ "wheel" ];
-          openssh.authorizedKeys.keys = keys;
-        }) config.x.admins
-      );
+      users =
+        {
+          root = {
+            isSystemUser = true;
+            openssh.authorizedKeys.keys = lib.flatten (lib.attrValues config.x.admins);
+          };
+        }
+        // (
+          lib.mapAttrs (name: keys: {
+            isNormalUser = true;
+            extraGroups = ["wheel"];
+            openssh.authorizedKeys.keys = keys;
+          })
+          config.x.admins
+        );
     };
 
     i18n.defaultLocale = lib.mkDefault "en_US.UTF-8";
@@ -77,7 +92,7 @@
 
     # Network configuration.
     networking.useDHCP = lib.mkDefault true;
-    networking.firewall.allowedTCPPorts = [ 22 ];
+    networking.firewall.allowedTCPPorts = [22];
 
     # Shell environment
     security.sudo = {
@@ -96,7 +111,5 @@
       "systemd.journald.forward_to_console=1"
       "console=tty1"
     ];
-
-
   };
 }

@@ -1,9 +1,12 @@
-{ config, pkgs, lib, ... }:
-let
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}: let
   cfg = config.x.storage.zfs;
   efiBoot = config.x.boot.efi;
-in
-{
+in {
   options.x.storage.zfs = {
     enable = lib.mkOption {
       type = lib.types.bool;
@@ -35,13 +38,13 @@ in
     rootPoolFilesystemProperties = lib.mkOption {
       description = lib.mdDoc ''
         file system properties of the zfs root pool, things you'd pass to zpool create -o.
-     '';
+      '';
       type = lib.types.attrs;
       default = {
         acltype = "posixacl";
         compression = "zstd";
         dnodesize = "auto";
-        normalization="formD";
+        normalization = "formD";
         relatime = "on";
         xattr = "sa";
       };
@@ -49,12 +52,12 @@ in
 
     datasets = lib.mkOption {
       description = lib.mdDoc ''
-            Datasets to create under the `tank` and `boot` zpools.
+        Datasets to create under the `tank` and `boot` zpools.
 
-            **NOTE:** This option is used only at image creation time, and
-            does not attempt to declaratively create or manage datasets
-            on an existing system.
-          '';
+        **NOTE:** This option is used only at image creation time, and
+        does not attempt to declaratively create or manage datasets
+        on an existing system.
+      '';
 
       default = {
         "tank/system/root".mount = "/";
@@ -63,35 +66,34 @@ in
         "tank/user/home".mount = "/home";
       };
 
-      type = with lib; types.attrsOf (types.submodule {
-        options = {
-          mount = mkOption {
-            description = mdDoc "Where to mount this dataset.";
-            type = types.nullOr types.string;
-            default = null;
-          };
+      type = with lib;
+        types.attrsOf (types.submodule {
+          options = {
+            mount = mkOption {
+              description = mdDoc "Where to mount this dataset.";
+              type = types.nullOr types.string;
+              default = null;
+            };
 
-          properties = mkOption {
-            description = mdDoc "Properties to set on this dataset.";
-            type = types.attrsOf types.string;
-            default = { };
+            properties = mkOption {
+              description = mdDoc "Properties to set on this dataset.";
+              type = types.attrsOf types.string;
+              default = {};
+            };
           };
-        };
-      });
+        });
     };
   };
-
 
   config = lib.mkIf (cfg.enable) {
     networking.hostId = lib.mkDefault "00000000";
 
     # TODO https://github.com/NixOS/nixpkgs/pull/185463
-    systemd.services."zpool-expand-pools".path =
-      let
-        cfgZfs = config.boot.zfs;
-        cfgExpandOnBoot = config.services.zfs.expandOnBoot;
-      in
-        lib.optionals (cfgExpandOnBoot == "all") [ cfgZfs.package ];
+    systemd.services."zpool-expand-pools".path = let
+      cfgZfs = config.boot.zfs;
+      cfgExpandOnBoot = config.services.zfs.expandOnBoot;
+    in
+      lib.optionals (cfgExpandOnBoot == "all") [cfgZfs.package];
 
     fileSystems =
       {
@@ -102,29 +104,32 @@ in
           fsType = "vfat";
         };
       }
-      //
-      (let
+      // (let
         mountable = lib.filterAttrs (_: value: ((value.mount or null) != null)) config.x.storage.zfs.datasets;
       in
         lib.mapAttrs'
-          (dataset: opts: lib.nameValuePair opts.mount {
+        (dataset: opts:
+          lib.nameValuePair opts.mount {
             device = dataset;
             fsType = "zfs";
           })
-          mountable);
+        mountable);
 
     boot = {
       zfs.forceImportRoot = false; # kernelParms = ["zfs_force=1"];
       zfs.devNodes = "/dev/";
       growPartition = true;
-      kernelParams = [ "elevator=none" ];
+      kernelParams = ["elevator=none"];
       loader = {
         timeout = 1;
         efi.canTouchEfiVariables = lib.mkDefault false;
         grub = {
           copyKernels = true;
           enable = lib.mkDefault true;
-          device = if (!efiBoot) then "/dev/vda" else "nodev";
+          device =
+            if (!efiBoot)
+            then "/dev/vda"
+            else "nodev";
           efiSupport = efiBoot;
           efiInstallAsRemovable = efiBoot;
         };
@@ -141,6 +146,5 @@ in
         flags = "-k -p --utc";
       };
     };
-
   };
 }

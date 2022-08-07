@@ -1,5 +1,9 @@
-{ config, pkgs, lib, ... }:
-let
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}: let
   cfg = config.x.instance-data;
 
   # Look for json-serialized instance data at `path` and load it if it exists.
@@ -12,14 +16,13 @@ let
     hcloud = {
       description = "hetzner.cloud, see https://docs.hetzner.cloud/#server-metadata";
       fetchInstanceData = pkgs.writeShellScript "fetch-instance-data-hetzner" ''
-          ${pkgs.curl}/bin/curl -s http://169.254.169.254/hetzner/v1/metadata \
-          | ${pkgs.yq}/bin/yq '.' \
-          > ${cfg.path}
+        ${pkgs.curl}/bin/curl -s http://169.254.169.254/hetzner/v1/metadata \
+        | ${pkgs.yq}/bin/yq '.' \
+        > ${cfg.path}
       '';
     };
   };
-in
-{
+in {
   options.x.instance-data = {
     enable = lib.mkOption {
       type = lib.types.bool;
@@ -54,13 +57,16 @@ in
     upgradeOnChange = lib.mkOption {
       type = lib.types.bool;
       description = lib.mdDoc "Whether to upgrade the system whenever we rebuild it.";
-      default = if cfg.rebuildOnChange then true else false;
+      default =
+        if cfg.rebuildOnChange
+        then true
+        else false;
     };
 
     data = lib.mkOption {
       type = lib.types.anything;
       description = lib.mdDoc ''
-          instance data as fetched from a cloud-provider and stored at `instance-data.path`, deserialized.
+        instance data as fetched from a cloud-provider and stored at `instance-data.path`, deserialized.
       '';
       default =
         # Look for commited instance-data inside our flake in pure mode, and outside at `cfg.path` in impure
@@ -71,38 +77,38 @@ in
     };
   };
 
+  config = lib.mkMerge [
+    ## Shared logic
+    (lib.mkIf (cfg.enable) {
+      systemd.services.fetch-instance-data = {
+        script = builtins.toString providers.${cfg.provider}.fetchInstanceData;
+        description = "Fetch instance data from ${cfg.provider} on startup";
 
-  config =
-    lib.mkMerge [
+        wantedBy = ["multi-user.target"];
+        after = ["multi-user.target"];
+        # We need to have *some* network connection atm to reach hetzners metadata server.
+        # DHCP works well enough for the moment.
+        requires = ["network-online.target"];
 
-      ## Shared logic
-      (lib.mkIf (cfg.enable) {
-        systemd.services.fetch-instance-data = {
-          script = builtins.toString providers.${cfg.provider}.fetchInstanceData;
-          description = "Fetch instance data from ${cfg.provider} on startup";
+        restartIfChanged = false;
+        unitConfig.X-StopOnRemoval = false;
 
-          wantedBy = [ "multi-user.target" ];
-          after = [ "multi-user.target" ];
-          # We need to have *some* network connection atm to reach hetzners metadata server.
-          # DHCP works well enough for the moment.
-          requires = [ "network-online.target" ];
-
-          restartIfChanged = false;
-          unitConfig.X-StopOnRemoval = false;
-
-          serviceConfig = {
-            Type = "oneshot";
-            RemainAfterExit = true;
-            TemporaryFileSystem = "/";
-            BindPaths = cfg.path;
-            ConditionPathExists = if cfg.onlyOnce then "!${cfg.path}" else null;
-          };
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = true;
+          TemporaryFileSystem = "/";
+          BindPaths = cfg.path;
+          ConditionPathExists =
+            if cfg.onlyOnce
+            then "!${cfg.path}"
+            else null;
         };
-      })
+      };
+    })
 
-      ## hcloud support
-      (lib.mkIf (cfg.enable && cfg.provider == "hcloud" && cfg.data != null) {
-        networking.hostName = lib.mkDefault cfg.data.hostname;
-      })
-    ];
+    ## hcloud support
+    (lib.mkIf (cfg.enable && cfg.provider == "hcloud" && cfg.data != null) {
+      networking.hostName = lib.mkDefault cfg.data.hostname;
+    })
+  ];
 }
