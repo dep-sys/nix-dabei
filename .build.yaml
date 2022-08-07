@@ -15,4 +15,4 @@ tasks:
       echo "experimental-features = nix-command flakes" > ~/.config/nix/nix.conf
       cd nix-dabei
       nix flake show
-      nix build .#hetznerInstaller
+      nix build .#hetznerInstaller | cachix push nix-dabei
