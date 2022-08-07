@@ -15,10 +15,10 @@
   providers = {
     hcloud = {
       description = "hetzner.cloud, see https://docs.hetzner.cloud/#server-metadata";
-      fetchInstanceData = pkgs.writeShellScript "fetch-instance-data-hetzner" ''
+      fetchInstanceData = pkgs.writeShellScriptBin "fetch-instance-data-hetzner.sh" ''
         ${pkgs.curl}/bin/curl -s http://169.254.169.254/hetzner/v1/metadata \
         | ${pkgs.yq}/bin/yq '.' \
-        > ${cfg.path}
+        | tee ${cfg.path}
       '';
     };
   };
@@ -38,7 +38,7 @@ in {
 
     onlyOnce = lib.mkOption {
       type = lib.types.bool;
-      description = lib.mdDoc "Whether re-fetch instance-data on startup, even if `instance-data.path` alreadz exists.";
+      description = lib.mdDoc "Whether re-fetch instance-data on startup, even if `instance-data.path` already exists.";
       default = true;
     };
 
@@ -79,12 +79,8 @@ in {
 
   config = let
     services = {
-      make = {
-        script,
-        description,
-        mixins,
-      }:
-        lib.foldr lib.recursiveUpdate {inherit script description;} mixins;
+      make = input:
+        lib.foldr lib.recursiveUpdate (lib.filterAttrs (n: v: n != "mixins") input) input.mixins;
       mixins = {
         # TODO check if https://github.com/NixOS/nixpkgs/blob/nixos-22.05/nixos/modules/security/systemd-confinement.nix
         # is an alternative
@@ -121,7 +117,7 @@ in {
         systemd.services = {
           fetch-instance-data = services.make {
             description = "Fetch instance data from ${cfg.provider} on startup";
-            script = builtins.toString providers.${cfg.provider}.fetchInstanceData;
+            script = "${providers.${cfg.provider}.fetchInstanceData}/bin/fetch-instance-data-hetzner.sh";
             mixins = with services.mixins; [
               isOneShot
               #isIsolated
@@ -137,8 +133,9 @@ in {
           };
           rebuild-with-instance-data = services.make {
             description = "Rebuild the host with live-instance data from ${cfg.provider} on startup";
+            path = with pkgs; [jq nettools nixos-rebuild];
             script = ''
-              host_name=$(${pkgs.jq}/bin/jq -r .hostname ${cfg.path} 2>/dev/null || echo "default")
+              host_name=$(jq -r .hostname ${cfg.path} 2>/dev/null || echo "default")
               ${lib.optionalString cfg.onlyOnce ''
                 if [ "$(hostname)" == "$host_name" ]
                 then
@@ -147,12 +144,12 @@ in {
                 fi
                 echo "Setting up $host_name"
               ''}
-              ${pkgs.nixos-rebuild}/bin/nixos-rebuild \
+              nixos-rebuild \
                   switch \
                   ${lib.optionalString cfg.upgradeOnChange "--upgrade"} \
                   --impure \
                   --flake \
-                  ".#$host_name"
+                  "config#$host_name"
             '';
             mixins = with services.mixins; [
               isOneShot
@@ -168,22 +165,23 @@ in {
       (lib.mkIf (cfg.enable && cfg.provider == "hcloud" && cfg.data != null) {
         users.motd = with cfg.data; lib.mkDefault "Welcome to ${hostname} (#${builtins.toString instance-id}) in ${availability-zone} (${region}).";
 
-        networking =
-          let
-            ipv6Config = (lib.filter (v: v ? ipv6 && v.ipv6) (lib.head cfg.data.network-config.config).subnets);
-            ipv6AddressParts = lib.splitString ipv6Config.address;
-            interface = "ens3"; # TODO: continue to use predictable interfaces or use eth0 from json here?
-          in {
-            hostName = lib.mkDefault cfg.data.hostname;
-            interfaces.${interface}.ipv6.addresses = [{
+        networking = let
+          ipv6Config = lib.filter (v: v ? ipv6 && v.ipv6) (lib.head cfg.data.network-config.config).subnets;
+          ipv6AddressParts = lib.splitString ipv6Config.address;
+          interface = "ens3"; # TODO: continue to use predictable interfaces or use eth0 from json here?
+        in {
+          hostName = lib.mkDefault cfg.data.hostname;
+          interfaces.${interface}.ipv6.addresses = [
+            {
               address = builtins.elemAt ipv6AddressParts 0;
               prefixLength = lib.toInt (builtins.elemAt ipv6AddressParts 1);
-            }];
-            defaultGateway6 = {
-              inherit interface;
-              address = ipv6Config.gateway;
-            };
+            }
+          ];
+          defaultGateway6 = {
+            inherit interface;
+            address = ipv6Config.gateway;
           };
+        };
       })
     ];
 }
