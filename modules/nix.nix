@@ -1,16 +1,22 @@
 {
   pkgs,
+  lib,
   inputs,
   ...
-}: {
+}: let
+  nixDabeiRepo = {
+    type = "github";
+    owner = "dep-sys";
+    repo = "nix-dabei";
+    ref = "zfs-disk-image";
+  };
+in {
   nix = {
     nixPath = ["nixpkgs=${inputs.nixpkgs}"];
-    registry.nixpkgs.flake = inputs.nixpkgs;
-    registry.nix-dabei.to  = {
-      type = "github";
-      owner = "dep-sys";
-      repo = "nix-dabei";
-      ref = "zfs-disk-image";
+    registry = {
+      nixpkgs.flake = inputs.nixpkgs;
+      nix-dabei.to = nixDabeiRepo;
+      config.to = lib.mkDefault nixDabeiRepo;
     };
     extraOptions = "experimental-features = nix-command flakes";
   };
