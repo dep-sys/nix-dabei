@@ -114,6 +114,16 @@ in {
     lib.mkMerge [
       ## Shared logic
       (lib.mkIf cfg.enable {
+        systemd.paths = {
+          # name of the path unit needs to match the service unit it should trigger
+          rebuild-with-instance-data = {
+            wantedBy = ["multi-user.target"];
+            pathConfig = {
+              PathExists = cfg.path;
+              PathChanged = cfg.path;
+            };
+          };
+        };
         systemd.services = {
           fetch-instance-data = services.make {
             description = "Fetch instance data from ${cfg.provider} on startup";
