@@ -1,0 +1,18 @@
+image: nixos/22.05
+sources:
+  - https://git.sr.ht/~phaer/nix-dabei#zfs-disk-image
+secrets:
+  - 8ceb1fd9-4bc4-4f4c-903d-67aa3be92e66 # sr.ht-cachix-nix-dabei
+tasks:
+  - cachix: |
+      nix-env -iA cachix -f https://cachix.org/api/v1/install
+      cachix use nix-dabei
+      set +x
+      cachix authtoken $(cat ~/.cachix-token)
+      set -x
+
+  - build: |
+      echo "experimental-features = nix-command flakes" > ~/.config/nix/nix.conf
+      cd nix-dabei
+      nix flake show
+      nix build .#hetznerInstaller
