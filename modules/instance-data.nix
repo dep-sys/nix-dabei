@@ -77,38 +77,74 @@ in {
     };
   };
 
-  config = lib.mkMerge [
-    ## Shared logic
-    (lib.mkIf cfg.enable {
-      systemd.services.fetch-instance-data = {
-        script = builtins.toString providers.${cfg.provider}.fetchInstanceData;
-        description = "Fetch instance data from ${cfg.provider} on startup";
-
-        wantedBy = ["multi-user.target"];
-        after = ["multi-user.target"];
-        # We need to have *some* network connection atm to reach hetzners metadata server.
-        # DHCP works well enough for the moment.
-        requires = ["network-online.target"];
-
-        restartIfChanged = false;
-        unitConfig.X-StopOnRemoval = false;
-
-        serviceConfig = {
-          Type = "oneshot";
-          RemainAfterExit = true;
-          TemporaryFileSystem = "/";
-          BindPaths = cfg.path;
-          ConditionPathExists =
-            if cfg.onlyOnce
-            then "!${cfg.path}"
-            else null;
+  config =
+    let
+      services = {
+        make = {script, description, mixins}:
+          lib.foldr lib.recursiveUpdate {inherit script description;} mixins;
+        mixins = {
+          isIsolated = {
+            serviceConfig = {
+              TemporaryFileSystem = "/";
+            };
+          };
+          isOneShot = {
+            restartIfChanged = false;
+            unitConfig.X-StopOnRemoval = false;
+            serviceConfig = {
+              Type = "oneshot";
+              RemainAfterExit = true;
+            };
+          };
+          needsMultiUser = {
+            wantedBy = ["multi-user.target"];
+            after = ["multi-user.target"];
+          };
+          needsNetworking = {
+            # We need to have *some* network connection atm to reach hetzners metadata server.
+            # DHCP works well enough for the moment.
+            requires = ["network-online.target"];
+          };
+          needsPath = path: {serviceConfig.ConditionPathExists = path; };
+          writesPath = path: {serviceConfig.BindPaths = path; };
         };
       };
-    })
+    in
+      lib.mkMerge [
+        ## Shared logic
+        (lib.mkIf cfg.enable {
+          systemd.services = {
+            fetch-instance-data = services.make {
+              description = "Fetch instance data from ${cfg.provider} on startup";
+              script = builtins.toString providers.${cfg.provider}.fetchInstanceData;
+              mixins = with services.mixins; [
+                isOneShot
+                isIsolated
+                needsMultiUser
+                needsNetworking
+                (needsPath (if cfg.onlyOnce then "!${cfg.path}" else null))
+                (writesPath cfg.path)
+              ];
+            };
+            rebuild-with-instance-data = services.make {
+              description = "Rebuild the host with live-instance data from ${cfg.provider} on startup";
+              script = ''
+                  host_name=$(${pkgs.jq}/bin/jq -r .hostname ${cfg.path} 2>/dev/null || echo default")
 
-    ## hcloud support
-    (lib.mkIf (cfg.enable && cfg.provider == "hcloud" && cfg.data != null) {
-      networking.hostName = lib.mkDefault cfg.data.hostname;
-    })
-  ];
+                  ${pkgs.nixos-rebuild}/bin/nixos-rebuild \
+                      switch \
+                      ${lib.optionalString cfg.upgradeOnChange "--upgrade"} \
+                      --impure \
+                      --flake \
+                      ".#$host_name"
+               '';
+            };
+          };
+        })
+
+        ## hcloud support
+        (lib.mkIf (cfg.enable && cfg.provider == "hcloud" && cfg.data != null) {
+          networking.hostName = lib.mkDefault cfg.data.hostname;
+        })
+      ];
 }
