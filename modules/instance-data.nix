@@ -16,9 +16,17 @@
     hcloud = {
       description = "hetzner.cloud, see https://docs.hetzner.cloud/#server-metadata";
       fetchInstanceData = pkgs.writeShellScriptBin "fetch-instance-data-hetzner.sh" ''
-        ${pkgs.curl}/bin/curl -s http://169.254.169.254/hetzner/v1/metadata \
-        | ${pkgs.yq}/bin/yq '.' \
-        | tee ${cfg.path}
+          for i in {1..10};
+          do
+              # wait until network is actually up
+              if ${pkgs.curl}/bin/curl -s http://169.254.169.254; then
+                break
+              fi
+          done
+
+          ${pkgs.curl}/bin/curl http://169.254.169.254/hetzner/v1/metadata \
+          | ${pkgs.yq}/bin/yq '.' \
+          | tee ${cfg.path}
       '';
     };
   };
