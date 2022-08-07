@@ -85,7 +85,7 @@ in {
     };
   };
 
-  config = lib.mkIf (cfg.enable) {
+  config = lib.mkIf cfg.enable {
     networking.hostId = lib.mkDefault "00000000";
 
     # TODO https://github.com/NixOS/nixpkgs/pull/185463

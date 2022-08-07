@@ -79,7 +79,7 @@ in {
 
   config = lib.mkMerge [
     ## Shared logic
-    (lib.mkIf (cfg.enable) {
+    (lib.mkIf cfg.enable {
       systemd.services.fetch-instance-data = {
         script = builtins.toString providers.${cfg.provider}.fetchInstanceData;
         description = "Fetch instance data from ${cfg.provider} on startup";
