@@ -20,7 +20,7 @@ in {
 
     rootPoolProperties = lib.mkOption {
       description = lib.mdDoc ''
-        properties of the zfs root pool, things you'd pass to zpool create -O.
+        properties of the zfs root pool, things you'd pass to zpool create -o.
 
         rootPoolProperties are mostly cargo-culted from
         https://openzfs.github.io/openzfs-docs/Getting%20Started/NixOS/Root%20on%20ZFS/2-system-installation.html
@@ -37,7 +37,7 @@ in {
 
     rootPoolFilesystemProperties = lib.mkOption {
       description = lib.mdDoc ''
-        file system properties of the zfs root pool, things you'd pass to zpool create -o.
+        file system properties of the zfs root pool, things you'd pass to zpool create -O.
       '';
       type = lib.types.attrs;
       default = {
@@ -112,7 +112,6 @@ in {
           lib.nameValuePair opts.mount {
             device = dataset;
             fsType = "zfs";
-            options = [ "zfs-util" "X-mount.mkdir" ];
           })
         mountable);
 
