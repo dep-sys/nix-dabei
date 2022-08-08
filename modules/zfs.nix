@@ -42,6 +42,7 @@ in {
       type = lib.types.attrs;
       default = {
         acltype = "posixacl";
+        canmount = "off";
         compression = "zstd";
         dnodesize = "auto";
         normalization = "formD";
@@ -57,7 +58,23 @@ in {
         **NOTE:** This option is used only at image creation time, and
         does not attempt to declaratively create or manage datasets
         on an existing system.
+
+        We map over datasets in a an `apply` function to persist
+        mountpoints manually.
       '';
+
+      apply = datasets:
+        let
+          mountProperties = v:
+            if v ? mount
+            then {
+              properties = {
+                canmount = "on";
+                mountpoint = v.mount;
+              };
+            }
+            else {};
+            in lib.mapAttrs(n: v: lib.recursiveUpdate (mountProperties v) v) datasets;
 
       default = {
         "tank/system/root".mount = "/";
