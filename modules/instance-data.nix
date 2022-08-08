@@ -16,12 +16,13 @@
     hcloud = {
       description = "hetzner.cloud, see https://docs.hetzner.cloud/#server-metadata";
       fetchInstanceData = pkgs.writeShellScriptBin "fetch-instance-data-hetzner.sh" ''
-          for i in {1..10};
+          for i in {1..60};
           do
               # wait until network is actually up
               if ${pkgs.curl}/bin/curl -s http://169.254.169.254; then
                 break
               fi
+              sleep 1
           done
 
           ${pkgs.curl}/bin/curl http://169.254.169.254/hetzner/v1/metadata \
