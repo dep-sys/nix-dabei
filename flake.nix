@@ -78,7 +78,7 @@
                   root@$TARGET_SERVER:
 
               echo "Installing to $TARGET_SERVER"
-              echo "ssh $SSH_ARGS root@$TARGET_SERVER -t 'bash ./wipe-disk-and-install.sh'"
+              ssh $SSH_ARGS root@$TARGET_SERVER -t 'bash ./wipe-disk-and-install.sh'
             '')
             (pkgs.writeScript "wipe-disk-and-install.sh" ''
               #!/usr/bin/env bash
