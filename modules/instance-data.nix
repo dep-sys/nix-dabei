@@ -136,7 +136,7 @@ in {
         systemd.services = {
           fetch-instance-data = services.make {
             description = "Fetch instance data from ${cfg.provider} on startup";
-            script = "${providers.${cfg.provider}.fetchInstanceData}/bin/fetch-instance-data-hetzner.sh";
+            serviceConfig.ExecStart = "${providers.${cfg.provider}.fetchInstanceData}/bin/fetch-instance-data-hetzner.sh";
             mixins = with services.mixins; [
               isOneShot
               #isIsolated
