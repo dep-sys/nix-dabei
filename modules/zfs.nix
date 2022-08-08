@@ -112,6 +112,7 @@ in {
           lib.nameValuePair opts.mount {
             device = dataset;
             fsType = "zfs";
+            options = [ "zfs-util" "X-mount.mkdir" ];
           })
         mountable);
 
