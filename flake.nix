@@ -120,7 +120,7 @@
             config,
           }:
             withSystem system (ctx @ {pkgs, ...}:
-              import "${inputs.nixpkgs}/nixos/lib/make-single-disk-zfs-image.nix" {
+              import ./lib/make-single-disk-zfs-image.nix {
                 inherit config pkgs;
                 inherit (pkgs) lib;
                 inherit (config.x.storage.image) format;
