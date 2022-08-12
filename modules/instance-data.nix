@@ -5,32 +5,13 @@
   ...
 }: let
   cfg = config.x.instance-data;
+  providers = import ../lib/providers {inherit pkgs;};
 
   # Look for json-serialized instance data at `path` and load it if it exists.
   maybeGetInstanceData = path:
     if builtins.pathExists path
     then builtins.fromJSON (builtins.readFile path)
     else null;
-
-  providers = {
-    hcloud = {
-      description = "hetzner.cloud, see https://docs.hetzner.cloud/#server-metadata";
-      fetchInstanceData = pkgs.writeShellScriptBin "fetch-instance-data-hetzner.sh" ''
-          for i in {1..60};
-          do
-              # wait until network is actually up
-              if ${pkgs.curl}/bin/curl -s http://169.254.169.254; then
-                break
-              fi
-              sleep 1
-          done
-
-          ${pkgs.curl}/bin/curl http://169.254.169.254/hetzner/v1/metadata \
-          | ${pkgs.yq}/bin/yq '.' \
-          | tee ${cfg.path}
-      '';
-    };
-  };
 in {
   options.x.instance-data = {
     enable = lib.mkOption {
@@ -134,9 +115,11 @@ in {
           };
         };
         systemd.services = {
-          fetch-instance-data = services.make {
+          fetch-instance-data = let
+            fetcher = providers.${cfg.provider}.fetchInstanceData cfg.path;
+          in services.make {
             description = "Fetch instance data from ${cfg.provider} on startup";
-            serviceConfig.ExecStart = "${providers.${cfg.provider}.fetchInstanceData}/bin/fetch-instance-data-hetzner.sh";
+            serviceConfig.ExecStart = "${fetcher}/bin/hcloud-fetch-instance-data.sh";
             mixins = with services.mixins; [
               isOneShot
               #isIsolated
@@ -151,17 +134,18 @@ in {
             ];
           };
           rebuild-with-instance-data = services.make {
-            description = "Rebuild the host with live-instance data from ${cfg.provider} on startup";
+            description = "Rebuild the host with live instance data from ${cfg.provider} on startup";
             path = with pkgs; [jq nettools nixos-rebuild];
             script = ''
-              host_name=$(jq -r .hostname ${cfg.path} 2>/dev/null || echo "default")
+              host_name="default" # FIXME just testing
+              #host_name=$(jq -r .hostname ${cfg.path} 2>/dev/null || echo "default")
               ${lib.optionalString cfg.onlyOnce ''
                 if [ "$(hostname)" == "$host_name" ]
                 then
                   echo "Hostname matches instance-data, host might already have been configured. Exiting."
                   exit 0
                 fi
-                echo "Setting up $host_name"
+                echo "Setting up $host_name..."
               ''}
               nixos-rebuild \
                   switch \
@@ -186,7 +170,7 @@ in {
 
         networking = let
           ipv6Config = lib.filter (v: v ? ipv6 && v.ipv6) (lib.head cfg.data.network-config.config).subnets;
-          ipv6AddressParts = lib.splitString ipv6Config.address;
+          ipv6AddressParts = lib.splitString "/" ipv6Config.address;
           interface = "ens3"; # TODO: continue to use predictable interfaces or use eth0 from json here?
         in {
           hostName = lib.mkDefault cfg.data.hostname;
