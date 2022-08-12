@@ -1,3 +1,7 @@
+# NOTE: This has been copied from nixpkgs/nixos/lib/make-single-disk-zfs-image.nix
+# for ease of hacking. We will try to upstream useful changes whenever we think
+# that they are stable enough.
+
 # Note: This is a private API, internal to NixOS. Its interface is subject
 # to change without notice.
 #
@@ -140,15 +144,37 @@ let
         })
         features);
 
-  createDatasets =
+  # Create "parent" datasets with canmount, which can't be inherited,
+  # set to off. E.g. for "tank/system/var" and "tank/system/root",
+  # create "tank/system" with canmount=off if it's not explicitly defined.
+  createParents = datasets:
+    let
+      datasetNames = lib.attrNames datasets;
+      getParent = name: lib.concatStringsSep "/" (lib.init (lib.splitString "/" name));
+      possibleParents = lib.unique (builtins.map getParent datasetNames);
+      parents = lib.subtractLists datasetNames possibleParents;
+      properties = stringifyProperties "-o" {
+        canmount = "off";
+        mountpoint = "none";
+      };
+      cmd = name: builtins.trace "zfs create ${properties} ${name}" "zfs create -p ${properties} ${name}";
+    in
+      lib.concatStringsSep "\n" (builtins.map cmd parents);
+
+  createDatasets = datasets:
     let
       datasetlist = lib.mapAttrsToList lib.nameValuePair datasets;
-      sorted = lib.sort (left: right: (lib.stringLength left.name) < (lib.stringLength right.name)) datasetlist;
+      sorted = lib.sort (left: right:
+        (lib.stringLength left.value.mount) < (lib.stringLength right.value.mount))
+        datasetlist;
       cmd = { name, value }:
         let
           properties = stringifyProperties "-o" (value.properties or { });
-        in
-        "zfs create -p ${properties} ${name}";
+          isRoot = value.mount == "/";
+        in ''
+            zfs create ${properties} ${name}
+            ${lib.optionalString isRoot "zfs snapshot ${name}@blank"}
+        '';
     in
     lib.concatMapStringsSep "\n" cmd sorted;
 
@@ -283,17 +309,16 @@ let
       zpool create \
         ${stringifyProperties "  -o" rootPoolProperties} \
         ${stringifyProperties "  -O" rootPoolFilesystemProperties} \
+        -R /mnt \
         ${rootPoolName} /dev/vda3
       parted --script /dev/vda -- print
 
-      ${createDatasets}
-      ${mountDatasets}
+      ${createParents datasets}
+      ${createDatasets datasets}
 
       mkdir -p /mnt/boot
       mkfs.vfat -n ESP /dev/vda2
       mount /dev/vda2 /mnt/boot
-
-      mount
 
       # Install a configuration.nix
       mkdir -p /mnt/etc/nixos
