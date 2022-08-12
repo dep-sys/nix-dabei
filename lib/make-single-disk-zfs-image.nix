@@ -157,7 +157,7 @@ let
         canmount = "off";
         mountpoint = "none";
       };
-      cmd = name: builtins.trace "zfs create ${properties} ${name}" "zfs create -p ${properties} ${name}";
+      cmd = name: "zfs create -p ${properties} ${name}";
     in
       lib.concatStringsSep "\n" (builtins.map cmd parents);
 
