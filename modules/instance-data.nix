@@ -169,7 +169,7 @@ in {
         users.motd = with cfg.data; lib.mkDefault "Welcome to ${hostname} (#${builtins.toString instance-id}) in ${availability-zone} (${region}).";
 
         networking = let
-          ipv6Config = lib.filter (v: v ? ipv6 && v.ipv6) (lib.head cfg.data.network-config.config).subnets;
+          ipv6Config = lib.head (lib.filter (v: v ? ipv6 && v.ipv6) (lib.head cfg.data.network-config.config).subnets);
           ipv6AddressParts = lib.splitString "/" ipv6Config.address;
           interface = "ens3"; # TODO: continue to use predictable interfaces or use eth0 from json here?
         in {
