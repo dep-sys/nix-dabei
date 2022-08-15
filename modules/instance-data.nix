@@ -39,7 +39,7 @@ in {
     };
 
     storedPath = lib.mkOption {
-      type = lib.types.path;
+      type = lib.types.nullOr lib.types.path;
       description = lib.mdDoc "set storedPath to a path relative to your repo to use an offline copy of instance data";
       default = null;
     };
