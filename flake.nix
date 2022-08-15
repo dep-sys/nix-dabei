@@ -33,11 +33,11 @@
             inherit (self.nixosConfigurations.default) config;
           };
 
-          hetznerInstaller = (import ./lib/providers {inherit pkgs;}).hcloud.makeInstaller {
+          hetznerInstaller = self.lib.makeHetznerInstaller {
             inherit pkgs;
             inherit (self'.packages) zfsImage;
           };
-       };
+        };
 
         devShells = {
           deployment = pkgs.mkShell {
@@ -54,6 +54,7 @@
       };
       flake = {
         lib = {
+
           makeZFSImage = {
             system,
             config,
@@ -65,6 +66,22 @@
                 inherit (config.x.storage.image) format;
                 inherit (config.x.storage.zfs) rootPoolProperties rootPoolFilesystemProperties datasets;
               });
+
+          makeHetznerInstaller = {
+            zfsImage,
+            pkgs,
+          }:
+            (import ./lib/providers {inherit pkgs;}).hcloud.makeInstaller {
+              inherit pkgs zfsImage;
+            };
+
+          makeNixosConfiguration = { modules ? [] }:
+            withSystem "x86_64-linux" (ctx @ {pkgs, ...}:
+              pkgs.nixos {
+                _module.args.inputs = inputs;
+                imports = [ self.nixosModules.default ] ++ modules;
+              });
+
         };
 
         nixosModules = {
@@ -72,45 +89,34 @@
           nix = ./modules/nix.nix;
           zfs = ./modules/zfs.nix;
           vm = ./modules/vm.nix;
+          default = { pkgs, modulesPath, ... }: {
+            imports = with self.nixosModules; [
+              core
+              zfs
+              "${modulesPath}/profiles/qemu-guest.nix"
+              "${modulesPath}/profiles/headless.nix"
+            ];
+
+            environment.systemPackages = with pkgs;
+              lib.mkDefault [
+                vim
+                tmux
+                htop
+                ncdu
+                curl
+                dnsutils
+                jq
+                fd
+                ripgrep
+                gawk
+                gnused
+                git
+              ];
+          };
         };
 
         nixosConfigurations = {
-          default = withSystem "x86_64-linux" (ctx @ {pkgs, ...}:
-            pkgs.nixos ({
-              config,
-              lib,
-              packages,
-              pkgs,
-              modulesPath,
-              ...
-            }: {
-              _module.args.inputs = inputs;
-              imports = with self.nixosModules; [
-                core
-                zfs
-                "${modulesPath}/profiles/qemu-guest.nix"
-                "${modulesPath}/profiles/headless.nix"
-              ];
-
-              # Enable the serial console on tty1
-              systemd.services."serial-getty@tty1".enable = true;
-
-              environment.systemPackages = with pkgs;
-                lib.mkDefault [
-                  vim
-                  tmux
-                  htop
-                  ncdu
-                  curl
-                  dnsutils
-                  jq
-                  fd
-                  ripgrep
-                  gawk
-                  gnused
-                  git
-                ];
-            }));
+          default = self.lib.makeNixosConfiguration {};
         };
       };
     });
