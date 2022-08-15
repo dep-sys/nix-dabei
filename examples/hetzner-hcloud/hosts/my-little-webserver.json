@@ -1,0 +1,38 @@
+{
+  "availability-zone": "nbg1-dc3",
+  "hostname": "installer-test",
+  "instance-id": 22976764,
+  "local-ipv4": "",
+  "network-config": {
+    "config": [
+      {
+        "mac_address": "96:00:01:79:bc:40",
+        "name": "eth0",
+        "subnets": [
+          {
+            "ipv4": true,
+            "type": "dhcp"
+          },
+          {
+            "address": "2a01:4f8:c0c:7bc5::1/64",
+            "dns_nameservers": [
+              "2a01:4ff:ff00::add:2",
+              "2a01:4ff:ff00::add:1"
+            ],
+            "gateway": "fe80::1",
+            "ipv6": true,
+            "type": "static"
+          }
+        ],
+        "type": "physical"
+      }
+    ],
+    "version": 1
+  },
+  "public-ipv4": "159.69.206.150",
+  "public-keys": [
+    "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDLopgIL2JS/XtosC8K+qQ1ZwkOe1gFi8w2i1cd13UehWwkxeguU6r26VpcGn8gfh6lVbxf22Z9T2Le8loYAhxANaPghvAOqYQH/PJPRztdimhkj2h7SNjP1/cuwlQYuxr/zEy43j0kK0flieKWirzQwH4kNXWrscHgerHOMVuQtTJ4Ryq4GIIxSg17VVTA89tcywGCL+3Nk4URe5x92fb8T2ZEk8T9p1eSUL+E72m7W7vjExpx1PLHgfSUYIkSGBr8bSWf3O1PW6EuOgwBGidOME4Y7xNgWxSB/vgyHx3/3q5ThH0b8Gb3qsWdN22ZILRAeui2VhtdUZeuf2JYYh8L"
+  ],
+  "region": "eu-central",
+  "vendor_data": "Content-Type: multipart/mixed; boundary=\"===============4618772185008957887==\"\nMIME-Version: 1.0\n\n--===============4618772185008957887==\nContent-Type: text/cloud-config; charset=\"us-ascii\"\nMIME-Version: 1.0\nContent-Transfer-Encoding: 7bit\nContent-Disposition: attachment; filename=\"cloud-config\"\n\n#cloud-config\ndisable_root: false\nfqdn: installer-test\nmanage_etc_hosts: true\nrandom_seed:\n  data: !!binary |\n    aWlUTjdXSGIxQVN2UWgyY2VMa1RsckZ4OEdFRVpoazFFM0w1RTNTTEduWjFkK3VtWFdJcUp5RUNm\n    Unc3aUp4U0JNWThXNEdFOTJjSWZBSW1RVmszU1V3cW1mbW1tSlQzakFFeWdJVWpSY2p2eGdrVUZy\n    bnpOdEpCekRyYi9TT3puejY5ckpTWTdXVHRPa2hpbDhNNk93M1V6TU54WmxoTjZqQnNOdkNnbkR4\n    TEVybUR1NTZtMVZHSERGOWFkS1ZFV05ZZU5xSmxUUFRkT0pNVldidERnR1FCNGNTdXIvSnhPTGRM\n    OWtIY2QvZndRL2g5RzRNRGhjcHVzTEFLK3ZVV2RkeWsvTkNkTktGRU5qT2kvaXU1ZDB4aFJjcFd4\n    a2o1WDlZVzlZM21LR2c4N1JjL0xGTVNDL29ZdzFsUGFrbnRVbWduNkZCeUZhZU9sWDBzRFF0amxk\n    d0Z3R2dCT0hReTkvVEtXVUNsVkpid3RtTTJaZXk1czd3MFloTVZhbVNJS2xjeXV4bk5mazM5SlI4\n    TUFBN0YxQzJZTVFSYW9CZ042MGNPNmc4TmE3a0xlZTNkZHF2MXFaUEwycHdtVzNZMVJzbVhPV00y\n    TkZueEdqR0MyczJPdEl2RVgyMTJIRGFpVkJLaUxJYlRVM09ZMkZzQjQ3c2o3QThoNUM3Z2xTYU4y\n    MUMvekhmdWFORXBSTzJlSitnUzJZeDhlUkRraWZkNGcySTNTdnY5T1ZvUDRoQ3FHelpLY2w4THJL\n    OWZSV1NoTFlVWWNISmNFcHh0SS9uU1Z1V2pSY3pPT3E0UGl4OGhmTkxkTUpUN05FWERqOFNVR1Q5\n    VTdaQ0Vac1hVQUFmTFI0dk5wckpJV3Y2VmJ5bjRqd0g4T3hGd05NK0wwZW1MeUF6RG9hays0ZVFY\n    OHlKMXp0eUU5eXg1ZGlRdURnREl4dGR6MTZBclVUUFlBb05KTVA3OENtUUtSVzBDNGZtRTZpL3pm\n    YWlTdDRETnpaN1FhQ3RISWdEZDZzSjBJL3NpY3loK0YzS3NGMExMNUZ5ZnI3MzVxMVVjTXhIM0Zy\n    VDJVVUE1cXhadWIxQklXTFBrL0JIQVhWWW9hNEZNMzZDMmtRU2pwbThBZHRSMTFNa3NhZTVOWWhL\n    d1orWXFTQ1hJQysxdzN1WDd4dURoREExejdKVHg3Y3EwM0JWMGdOMVRySzlFTmdhUjRqTGRjN3hw\n    S1JMSGphNm1SR1g4QzB6ZS9rbWV6dVR3UUN3eGdkY2hyYzJQTEFpUVRucWJwNHFwOFJJajI1Qko4\n    WHprckxZdzZkOVpIQ2JKZS96OHZBY1lBdTFNUnIxZ0QvWFVkVW51YTkxSHo3eVBYc2JrWXIyejlp\n    V0liRTZWSVZyZ29UMmsvcko5dXFzTGlOcWZRSVE5R1R5VERvbjFPWVVjcXVxbWtwVFkrMDRzS0NL\n    NWpPeUpiRUQvRXBWRDVoRmpuTU9zQ1dtamRzRzd2cXo3TzFHWE9MaklJZDhLd3QwRDhUT1dGYkN6\n    Zno4cHJ6YngyQ3FVYnBJSUNkNCsvNlAwTmFRdkNkdUh1SXBQcU1jcVlzT3JrSHlwUUhsUGVVTm1N\n    MGhxaWorQTcrbGtndDdaNys0SmtVMzlIVGJ2bVZqSW55ZzI4NnFDWTVCNXZqUFpRYUJZbGlhODIr\n    am5oVFZ3L04yQ0NvQXRsNmFldnRmTWZQTXB6NFFJZTlRTzNoRUtIOWw2ZUF6R2RDUmlQOG5SeU53\n    ZU1xaW1FYXhZZ1BqazZ5SzRUbFJjV1l2VS8rZnFjdkMzR0huZUtLdWVJTE5UMUNSL0t3RVBjcHFm\n    Zml5azJmOXZGaWFPMnhWWU1STndxU2FwZlRPaWkycW4xcnluNzh3RnllSG8zTmJqa2FJaHRCNElS\n    ZHZua2hkemh2RmZ2eGNRT2JEbUdXamZ0c3ZkaWVHem1Oemd2MENuZEk1bDhveEpIWkt0QXo0Nzd0\n    ZXMvdlFjdGI5aEQvVnI0ZEZLY1poelJtdjBqVStQbmQ3bitVZDltd2N4VGRhWHVLRUVNV1F3N0Jz\n    N09sZG5sYXlFN0ExeXBVYTgvNm5aQmc5YWlyUGdMQ2p5NEl1ZFBudkRUYU5SdEh2bm4zd1BsS2dJ\n    VVIwVlFUTDdHQU9oU3JmbnlYMTV3Smt5N0FuMVdkNGxPRnpGVytETzdUQzdVQlByVk1yN25oc252\n    b29ldHNaRXNFWVRPRWwvK3ZOdVNudjVjNHVUODh3ZEFsMEdwOFNOZDk4bU9RdkNyYUZqeDI2aCta\n    Q3RZQllVMEM3ZHpNcmc3cDcwbGpnK1NMQlpiRU1XUk9WWk15bHV4TmR3T0VKaVc2RE1mQVExSSs5\n    cU9lZGhtMHlKU2RWUGd3bGl2SjBmNFR5ZXRoUzVSU2JJVWZXZlFmSjk5Qzk1QTd4ck1wZm43ME1H\n    UzloYklPYVpMTUIxaDljSXZCaTJwb1ZTMlNvaWQwcGxQbDZEcnVNbjc3Rkc3eDViL3ZPQVV4NThD\n    WnpVZEdXb3lGc1p0K2xlMjR0Y2tSV2NJbUFDa3Aydy9KMDM4UnFDTlRFUXpMRVRWM01GUnIxdkYv\n    QWJMQkc3VTNlaDIwRlliRTdwdUx0K0EyWUlNb3V1bWpGREVHWjlvVkc3UitZRVFIUjF4UzAwYjhR\n    T1BtOHlHWTh3QWoyeGRBOE9HMnUwellHaXd6ZGNBWmdRbXdSaEtadS9tVXk3dzhwMDBFcGRrY2Uw\n    KzBzbVptRW90dXJ2NS9sMVhJUm9xQnlqM01GbmRXMjhYMUVvSGQ5Y25VOG1yZXNhZ2h6QVpid3pk\n    UXJ0blYybjRSbm4wSWFnNG5SRDlZaStkWHRqR1l4MXhOZFRDeTJKdDVyQ2Eyb09LWko3QWFsV3lu\n    TW9DVmJNdW0xRVdic0lWdlV6UkowM1U3OHdpOTMzblZDOTFqbm9uWmJEMzdHTHovTUZibGF2T0p6\n    UmRya0NKZWoramxlK3dRN3lNR2ZXckIwaFdIMlBUbHpPQU54MFVsS0dOUVlpRndXeTFMeHBod1BJ\n    dEIyVVZGMFp2QkJhbHhlSXdPRzhERnJRRGNhcFFqQlpOZmJKRUlJTzhiM2VacGFzRVBEc1E1eVJK\n    VFBCTmNIdDM3eVczL1NkMEk1UlA5RlhYVjYxcHh4M295L3NiTkRuQmNjZ1FSVlBtY1FIK3QzSHUy\n    d3pjRkZNSmdwU2JFbEFmOUZkMmhRcGNwWW84SW1sTEgvMjltS2tFL1pQaFhyS3VURE90cVdlMWtH\n    WW5veWtsTU01THd6MlNaaVZCS0l4UFZBeGw5U2FWdzdqZXFZMVVUVnFwM3BWeUJTVCtCRXdxYWFm\n    NWhDWUw1dE1oTTBVYjBKTWMybHpjdGs5Ujg3eThvcllXNkpuMWRMSTVVcmdTNWZ4OE9PdTU2T1cv\n    bUpOVHZTMlNpNFRLSGZhanlkUTY5cTZFZU5QL01NNzZ6ZEhDNE9BYkJqZHhGdm5yS1p4RlZYSSsr\n    RlZQdllhQkJobHhKd3dqajJrTFltQlVUTkNaVmVVTXZ6a2s1YVU5eDVOazlHS0tjbWxGaHZwaDVm\n    dTAwQkJrVnpvVzdRcmxVSmJ6eEo2WHJkYUZvMG16QnBPL2RHaG02Slh3clhaZTVUK0VxYz0=\n  encoding: base64\n  file: /dev/urandom\nruncmd:\n- udevadm trigger -c add -s block -p ID_VENDOR=HC --verbose -p ID_MODEL=Volume\nsystem_info:\n  default_user:\n    lock_passwd: true\n    name: root\n    shell: /bin/bash\n\n--===============4618772185008957887==--\n"
+}

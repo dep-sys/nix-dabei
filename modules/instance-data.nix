@@ -34,8 +34,14 @@ in {
 
     path = lib.mkOption {
       type = lib.types.path;
-      description = lib.mdDoc "path to store instance-data at.";
+      description = lib.mdDoc "path to store instance-data at on the target system.";
       default = "/var/run/instance-data.json";
+    };
+
+    storedPath = lib.mkOption {
+      type = lib.types.path;
+      description = lib.mdDoc "set storedPath to a path relative to your repo to use an offline copy of instance data";
+      default = null;
     };
 
     rebuildOnChange = lib.mkOption {
@@ -61,9 +67,16 @@ in {
       default =
         # Look for commited instance-data inside our flake in pure mode, and outside at `cfg.path` in impure
         # mode. Give up and return `null` if neither is found.
-        if lib.inPureEvalMode
-        then maybeGetInstanceData ./foo # TODO make host-specific
-        else maybeGetInstanceData cfg.path;
+        let
+          stored = maybeGetInstanceData cfg.storedPath;
+          live = maybeGetInstanceData cfg.path;
+        in
+          if stored != null
+          then stored
+          else
+            if lib.inPureEvalMode
+            then null
+            else live;
     };
   };
 

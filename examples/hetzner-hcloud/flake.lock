@@ -1,5 +1,42 @@
 {
   "nodes": {
+    "colmena": {
+      "inputs": {
+        "flake-compat": "flake-compat",
+        "nixpkgs": "nixpkgs",
+        "stable": "stable",
+        "utils": "utils"
+      },
+      "locked": {
+        "lastModified": 1659157989,
+        "narHash": "sha256-XHyjblfOAhoHwIDfPxYqAbvYzCO0/XjntULV6Dmavo8=",
+        "owner": "zhaofengli",
+        "repo": "colmena",
+        "rev": "34bb2e46747e69c9a34f94583330ad9a9f5ad20a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "zhaofengli",
+        "repo": "colmena",
+        "type": "github"
+      }
+    },
+    "flake-compat": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1650374568,
+        "narHash": "sha256-Z+s0J8/r907g149rllvwhb4pKi8Wam5ij0st8PwAh+E=",
+        "owner": "edolstra",
+        "repo": "flake-compat",
+        "rev": "b4a34015c698c7793d592d66adbab377907a2be8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "edolstra",
+        "repo": "flake-compat",
+        "type": "github"
+      }
+    },
     "flake-parts": {
       "inputs": {
         "nixpkgs": [
@@ -28,21 +65,33 @@
         ]
       },
       "locked": {
-        "lastModified": 1660589932,
-        "narHash": "sha256-Zv8esmCtr5faIO8ZN4seHC5mMfCHZN26BhbbepJxh14=",
-        "owner": "dep-sys",
-        "repo": "nix-dabei",
-        "rev": "9202ebb832751f8741077e8ef00b8b2e9f6d84a5",
-        "type": "github"
+        "lastModified": 1660591042,
+        "narHash": "sha256-3wEs7P+x2qHn8roSqbQGdIDuZEQ2E8EC8ZsxcrN+hys=",
+        "type": "git",
+        "url": "file:///home/phaer/src/nix-dabei"
       },
       "original": {
-        "owner": "dep-sys",
-        "ref": "zfs-disk-image",
-        "repo": "nix-dabei",
-        "type": "github"
+        "type": "git",
+        "url": "file:///home/phaer/src/nix-dabei"
       }
     },
     "nixpkgs": {
+      "locked": {
+        "lastModified": 1656372800,
+        "narHash": "sha256-1u9SDLXvKix/QejNb2sY2J2QZXnbe/14MnLtn+ln9j0=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "020c74014b9e2fa905bb4059c979965816cd9118",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_2": {
       "locked": {
         "lastModified": 1660485612,
         "narHash": "sha256-sSLW1KaB1adKTJn9+Ja3h3AaS7QCZyhUKiSUStcLg80=",
@@ -60,8 +109,40 @@
     },
     "root": {
       "inputs": {
+        "colmena": "colmena",
         "nix-dabei": "nix-dabei",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs_2"
+      }
+    },
+    "stable": {
+      "locked": {
+        "lastModified": 1656433693,
+        "narHash": "sha256-m29hSYsu2U+tnBo5v1/2RGo3lYY6KKb52MHV/89NeCs=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "babb041b7167008af3faca4c78f9dd8c6e83ef3a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-22.05",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "utils": {
+      "locked": {
+        "lastModified": 1653893745,
+        "narHash": "sha256-0jntwV3Z8//YwuOjzhV2sgJJPt+HY6KhU7VZUL0fKZQ=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "1ed9fb1935d260de5fe1c2f7ee0ebaae17ed2fa1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
       }
     }
   },

@@ -75,11 +75,12 @@
               inherit pkgs zfsImage;
             };
 
-          makeNixosConfiguration = { modules ? [] }:
-            withSystem "x86_64-linux" (ctx @ {pkgs, ...}:
-              pkgs.nixos {
-                _module.args.inputs = inputs;
-                imports = [ self.nixosModules.default ] ++ modules;
+          makeNixosConfiguration = { modules ? [], extraModules ? [] }:
+            withSystem "x86_64-linux" (ctx @ {pkgs, system, ...}:
+              inputs.nixpkgs.lib.nixosSystem {
+                inherit system pkgs extraModules;
+                modules = [ self.nixosModules.default ] ++ modules;
+                specialArgs = { inherit inputs; };
               });
 
         };
