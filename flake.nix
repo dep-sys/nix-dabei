@@ -118,6 +118,13 @@
         nixosConfigurations = {
           default = self.lib.makeNixosConfiguration {};
         };
+
+        templates = {
+          hetzner-hcloud = {
+            path = ./examples/hetzner-hcloud;
+            description = "deployment on hetzner.cloud.";
+          };
+        };
       };
     });
 }
