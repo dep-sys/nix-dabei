@@ -71,7 +71,7 @@ in {
           stored = maybeGetInstanceData cfg.storedPath;
           live = maybeGetInstanceData cfg.path;
         in
-          if stored != null
+          if cfg.storedPath != null && stored != null
           then stored
           else
             if lib.inPureEvalMode
