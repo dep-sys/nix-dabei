@@ -1,7 +1,35 @@
-* TODO fix autoexpand script
-    zpool executable was missing for service
-* TODO merge into nix-dabei
-* TODO investigate writing a configuration.nix
-* TODO finish test-vm-hetzner.sh
-* TODO enable ntpd
-* TODO ipv6 support
+* nix-dabei
+
+[![builds.sr.ht status](https://builds.sr.ht/~phaer.svg)](https://builds.sr.ht/~phaer?)
+
+contains tooling to install [[https://nixos.org][NixOS]] with [[https://github.com/openzfs/zfs][ZFS]] from a live Linux system.
+
+The primary motivation behind it was to allow non-interactive installation of NixOS such as [[https://hetzner.cloud][hetzner.cloud]] with ZFS.
+Available NixOS ISO images at hetzner do not allow non-interactive deployments, while we can't use ZFS with alternative solutions
+such as [[https://github.com/elitak/nixos-infect][nixos-infect ]] which works with an existing file system.
+
+** Status
+nix-dabei is written in a way which should enable it to be used in a variety of cloud environments, but only hetzner.hcloud is implemented so far.
+
+There's CI available to build and cache images, but it doesn't really make sense to distribute them at the moment as built images contain my SSH key.
+To avoid hard-coding a password to allow testing nix-dabei without building your own images, we plan store SSH keys on the ESP partition in the future, so that they could be modified from systems without ZFS, such as most rescue systems.
+
+** How it works
+*** Use nix-dabei to configure a basic NixOS system by providing an OpenSSH public key and provider-specific metadata.
+*** Build a ZFS disk image for this system.
+*** Copy this disk image to a new host, running your providers rescue system.
+*** Write the disk image to disk and reboot.
+*** On First boot, the host...
+**** acquires an IP address via DHCP.
+**** starts the =fetch-instance-data= service
+to download instance-specifc metadata from the provider and store it in ~/var/run/instance-data.json~. This may include hostname, location, and other things.
+**** starts the =rebuild-with-instance-data= service
+to rebuild the NixOS system from your original flake using the data it just acquired.
+
+*** The disk image itself is reusable for as many machines as you like, because =rebuild-with-instance-data= uses the hostname acquired from your provider to select the right =nixosConfiguration= from your flake, like:
+#+begin_src
+    nixos-rebuild switch --upgrade --impure --flake "config#$hostname"
+#+end_src
+
+See [[./modules/instance-data.nix]] for details.
+
