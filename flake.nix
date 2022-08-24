@@ -44,10 +44,6 @@
             buildInputs = with pkgs; [
               pkgs.hcloud
             ];
-            shellHook = ''
-              # FIXME: use your own token here
-              export HCLOUD_TOKEN="$(gopass show -o fancy.systems/external/hetzner.cloud)"
-            '';
           };
           default = self'.devShells.deployment;
         };
