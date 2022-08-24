@@ -2,7 +2,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nix-dabei = {
-      url = "github:dep-sys/nix-dabei/zfs-disk-image";
+      url = "github:dep-sys/nix-dabei";
       inputs = {
         nixpkgs.follows = "nixpkgs";
       };
