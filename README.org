@@ -8,7 +8,10 @@ The primary motivation behind it was to allow non-interactive installation of Ni
 Available NixOS ISO images at hetzner do not allow non-interactive deployments, while we can't use ZFS with alternative solutions
 such as [[https://github.com/elitak/nixos-infect][nixos-infect ]] which works with an existing file system.
 
+To find my earlier approach, which involved a minimal initial ramdisk and =kexec=, look into the [[https://github.com/dep-sys/nix-dabei/tree/kexec][kexec branch]] in this repo.
+
 ** Status
+
 nix-dabei is written in a way which should enable it to be used in a variety of cloud environments, but only hetzner.hcloud is implemented so far.
 
 There's CI available to build and cache images, but it doesn't really make sense to distribute them at the moment as built images contain my SSH key.
