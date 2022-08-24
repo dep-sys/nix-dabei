@@ -97,23 +97,7 @@
               "${modulesPath}/profiles/qemu-guest.nix"
               "${modulesPath}/profiles/headless.nix"
             ];
-
-            environment.systemPackages = with pkgs;
-              lib.mkDefault [
-                vim
-                tmux
-                htop
-                ncdu
-                curl
-                dnsutils
-                jq
-                fd
-                ripgrep
-                gawk
-                gnused
-                git
-              ];
-          };
+         };
         };
 
         nixosConfigurations = {
