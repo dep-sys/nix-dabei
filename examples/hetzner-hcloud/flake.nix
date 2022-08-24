@@ -7,7 +7,7 @@
         nixpkgs.follows = "nixpkgs";
       };
     };
-    colmena.url = "github:zhaofengli/colmena";
+    colmena.url = "github:zhaofengli/colmena/stable";
   };
 
   outputs = { self, nixpkgs, nix-dabei, colmena, ... } @ inputs: let
@@ -26,6 +26,7 @@
       };
     };
 
+    apps.${system}.colmena = colmena.apps.${system}.colmena;
     colmena = {
       meta = {
         nixpkgs = import nixpkgs {
