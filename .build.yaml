@@ -1,6 +1,6 @@
 image: nixos/22.05
 sources:
-  - https://git.sr.ht/~phaer/nix-dabei#zfs-disk-image
+  - https://git.sr.ht/~phaer/nix-dabei
 secrets:
   - 8ceb1fd9-4bc4-4f4c-903d-67aa3be92e66 # sr.ht-cachix-nix-dabei
 tasks:
