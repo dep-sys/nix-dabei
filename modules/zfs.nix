@@ -104,14 +104,6 @@ in {
 
   config = lib.mkIf cfg.enable {
     networking.hostId = lib.mkDefault "00000000";
-
-    # TODO https://github.com/NixOS/nixpkgs/pull/185463
-    systemd.services."zpool-expand-pools".path = let
-      cfgZfs = config.boot.zfs;
-      cfgExpandOnBoot = config.services.zfs.expandOnBoot;
-    in
-      lib.optionals (cfgExpandOnBoot == "all") [cfgZfs.package];
-
     fileSystems =
       {
         "/boot" = {
