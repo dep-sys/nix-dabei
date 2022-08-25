@@ -11,21 +11,10 @@
   ];
 
   options.x = {
-    toml = lib.mkOption {
-      description = lib.mdDoc "read site-specific info from config toml";
-      type = lib.types.anything;
-      readOnly = true;
-      default = let
-        configPath = "${inputs.self.outPath}/config.toml";
-      in
-        assert (builtins.pathExists configPath);
-          lib.importTOML "${inputs.self.outPath}/config.toml";
-    };
-
     admins = lib.mkOption {
       description = lib.mdDoc "Attrset of admin username and ssh keys";
       type = lib.types.attrsOf (lib.types.listOf lib.types.string);
-      default = config.x.toml.admins;
+      default = {};
     };
 
     boot.efi = lib.mkOption {
@@ -56,6 +45,7 @@
         message = "We are open to other file systems, but atm only ZFS is supported.";
       }
     ];
+
 
     # Let 'nixos-version --json' know about the Git revision of this flake.
     system.configurationRevision = lib.mkIf (inputs.self ? rev) inputs.self.rev;
@@ -88,7 +78,11 @@
       enable = lib.mkDefault true;
       passwordAuthentication = lib.mkDefault false;
       permitRootLogin = lib.mkDefault "without-password";
+      authorizedKeysFiles = [ "/boot/%u.pub" ];
     };
+    # Allow building a system without passwords or pub keys, as we might get our ssh keys
+    # only during runtime from /boot.
+    users.allowNoPasswordLogin = true;
 
     # Network configuration.
     networking.useDHCP = lib.mkDefault true;

@@ -3,8 +3,14 @@ rec {
   description = "hetzner.cloud, see https://docs.hetzner.cloud/#server-metadata";
 
   fetchInstanceData = path: pkgs.writeShellScriptBin "hcloud-fetch-instance-data.sh" ''
-      for i in {1..60};
-      do
+      # If it's our first run and /boot/instance-data.json exists, use that one.
+      if [ ! -f ${path} -a -f /boot/instance-data.json ]; then
+        cp /boot/instance-data.json ${path}
+        exit 0
+      fi
+
+      # Otherwise wait for the network to ask hetzner
+      for i in {1..60}; do
           # wait until network is actually up
           if ${pkgs.curl}/bin/curl -s http://169.254.169.254; then
             break
@@ -77,6 +83,24 @@ rec {
       # but it adjusts the disk size in our GPT header, so that auto-expansion can work later on
       echo 'label: gpt' | sfdisk --append "$TARGET_DISK"
 
+      mount "$TARGET_DISK-part2" /mnt
+
+      python3 <<EOF
+      import json
+      import yaml
+      import requests
+      response = requests.get('http://169.254.169.254/hetzner/v1/metadata')
+      response.raise_for_status()
+
+      data = yaml.load(response.text, Loader=yaml.SafeLoader)
+      with open('/mnt/instance-data.json', 'w') as instance_data:
+        json.dump(data, instance_data)
+      with open('/mnt/root.pub', 'w') as pub_key:
+        pub_key.writelines(data["public-keys"])
+        pub_key.write('\n')
+      EOF
+
+      umount /mnt
       reboot
   '';
 
