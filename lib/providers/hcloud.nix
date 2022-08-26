@@ -79,7 +79,7 @@ rec {
       # but it adjusts the disk size in our GPT header, so that auto-expansion can work later on
       echo 'label: gpt' | sfdisk --append "$TARGET_DISK"
 
-      partx -u "$TARGET_DISK"
+      sleep 3
       mount "$TARGET_DISK-part2" /mnt
 
       python3 <<EOF
