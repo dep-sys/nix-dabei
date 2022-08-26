@@ -26,20 +26,16 @@ rec {
   installScript = pkgs.writeShellScript "hcloud-create-machine.sh" ''
       set -euxo pipefail
 
+      TARGET_NAME="$1"
       SSH_ARGS="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
       wait_for_ssh() {
           until ssh -o ConnectTimeout=2 $SSH_ARGS root@"$1" "true"
               do sleep 1
           done
       }
-
-      # TODO remove or prompt
-      hcloud server delete installer-test \
-          || true
-
       hcloud server create \
           --start-after-create=false \
-          --name installer-test \
+          --name "$TARGET_NAME" \
           --type cx11 \
           --image debian-11 \
           --location nbg1 \
@@ -47,11 +43,11 @@ rec {
 
       hcloud server enable-rescue \
           --ssh-key "ssh key" \
-          installer-test
+          "$TARGET_NAME"
 
-      hcloud server poweron installer-test
+      hcloud server poweron "$TARGET_NAME"
 
-      export TARGET_SERVER=$(hcloud server ip installer-test)
+      export TARGET_SERVER="$(hcloud server ip "$TARGET_NAME")"
       wait_for_ssh "$TARGET_SERVER"
       test "$(ssh $SSH_ARGS root@$TARGET_SERVER hostname)" = "rescue" \
           || exit 1
