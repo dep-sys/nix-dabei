@@ -39,6 +39,8 @@
           };
         };
 
+        hydrajobs = self.${system}.packages;
+
         devShells = {
           deployment = pkgs.mkShell {
             buildInputs = with pkgs; [
