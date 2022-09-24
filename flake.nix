@@ -39,7 +39,6 @@
           };
         };
 
-        hydrajobs = self.${system}.packages;
 
         devShells = {
           deployment = pkgs.mkShell {
@@ -82,6 +81,8 @@
               });
 
         };
+
+        hydraJobs = self.packages.x86_64-linux;
 
         nixosModules = {
           core = ./modules/core.nix;
