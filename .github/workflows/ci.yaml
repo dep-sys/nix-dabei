@@ -9,7 +9,8 @@ jobs:
       uses: actions/checkout@v3
     - name: Install nix
       uses: cachix/install-nix-action@v17
-      extra_nix_config: "system-features = nixos-test benchmark big-parallel kvm"
+      with:
+        extra_nix_config: "system-features = nixos-test benchmark big-parallel kvm"
     - name: Setup Cache
       uses: cachix/cachix-action@v10
       with:
