@@ -1,0 +1,23 @@
+name: "Build & Fill Cache"
+on:
+  push:
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+    - name: Install nix
+      uses: cachix/install-nix-action@v17
+    - name: Setup Cache
+      uses: cachix/cachix-action@v10
+      with:
+        name: nix-dabei
+        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+
+    - name: Build zfsImage
+      run: nix build -L .#zfsImage
+    - name: Build hetznerInstaller
+      run: nix build -L .#hetznerInstaller
+    - name: Show sizes
+      run: du -Lh  result/*
