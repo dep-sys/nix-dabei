@@ -22,3 +22,11 @@ jobs:
       run: nix build -L .#hetznerInstaller
     - name: Show sizes
       run: du -Lh  result/*
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: |
+          result/nixos-disk-image/nixos.root.qcow2
+          result/hcloud-create-machine.sh
+          result/hcloud-do-install.sh
