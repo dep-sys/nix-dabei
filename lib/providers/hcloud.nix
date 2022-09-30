@@ -26,7 +26,7 @@ rec {
   installScript = pkgs.writeShellScript "hcloud-create-machine.sh" ''
       set -euxo pipefail
 
-      USE_GITHUB_MIRROR="$${USE_GITHUB_MIRROR:-}"
+      NO_UPLOAD="$${NO_UPLOAD:-}"
 
       TARGET_NAME="$1"
       SSH_ARGS="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
@@ -54,9 +54,8 @@ rec {
       test "$(ssh $SSH_ARGS root@$TARGET_SERVER hostname)" = "rescue" \
           || exit 1
 
-
-      if [ ! "$USE_GITHUB_MIRROR" ]; then
-          echo "Copying a LOCAL BUILD to $TARGET_SERVER, set USE_GITHUB_MIRROR=1 if you don't have one"
+      if [ ! "$NO_UPLOAD" ]; then
+          echo "Copying a LOCAL BUILD to $TARGET_SERVER, set NO_UPLOAD=1 if you don't have one"
           rsync \
               -e "ssh $SSH_ARGS" \
               -Lvz \
@@ -66,9 +65,12 @@ rec {
               root@$TARGET_SERVER:
       else
           echo "NOT copying a local build, latest release will be downloaded from github.com"
+          ssh $SSH_ARGS root@$TARGET_SERVER -t 'curl --progress-bar -L -o hcloud-do-install.sh https://github.com/dep-sys/nix-dabei/releases/latest/download/hcloud-do-install.sh'
       fi
+
       echo "Installing to $TARGET_SERVER"
       ssh $SSH_ARGS root@$TARGET_SERVER -t 'bash ./hcloud-do-install.sh'
+
   '';
   remoteScript = pkgs.writeScript "hcloud-do-install.sh" ''
       #!/usr/bin/env bash
@@ -79,7 +81,7 @@ rec {
 
       if [ ! -f nixos.root.qcow2 ]; then
           echo "Could not find disk image, downloading from github.com..."
-          curl -# -o nixos.root.qcow2 https://github.com/dep-sys/nix-dabei/releases/latest/download/nixos.root.qcow2
+          curl --progress-bar -L -o nixos.root.qcow2 https://github.com/dep-sys/nix-dabei/releases/latest/download/nixos.root.qcow2
       fi
 
       # you could just use dd if you build the image with format=raw, but
