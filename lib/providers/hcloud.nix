@@ -26,6 +26,8 @@ rec {
   installScript = pkgs.writeShellScript "hcloud-create-machine.sh" ''
       set -euxo pipefail
 
+      USE_GITHUB_MIRROR="$${USE_GITHUB_MIRROR:-}"
+
       TARGET_NAME="$1"
       SSH_ARGS="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
       wait_for_ssh() {
@@ -52,15 +54,19 @@ rec {
       test "$(ssh $SSH_ARGS root@$TARGET_SERVER hostname)" = "rescue" \
           || exit 1
 
-      echo "Copying to $TARGET_SERVER"
-      rsync \
-          -e "ssh $SSH_ARGS" \
-          -Lvz \
-          --info=progress2 \
-          "./result/nixos-disk-image/nixos.root.qcow2" \
-          "./result/hcloud-do-install.sh" \
-          root@$TARGET_SERVER:
 
+      if [ ! "$USE_GITHUB_MIRROR" ]; then
+          echo "Copying a LOCAL BUILD to $TARGET_SERVER, set USE_GITHUB_MIRROR=1 if you don't have one"
+          rsync \
+              -e "ssh $SSH_ARGS" \
+              -Lvz \
+              --info=progress2 \
+              "./result/nixos-disk-image/nixos.root.qcow2" \
+              "./result/hcloud-do-install.sh" \
+              root@$TARGET_SERVER:
+      else
+          echo "NOT copying a local build, latest release will be downloaded from github.com"
+      fi
       echo "Installing to $TARGET_SERVER"
       ssh $SSH_ARGS root@$TARGET_SERVER -t 'bash ./hcloud-do-install.sh'
   '';
@@ -70,6 +76,11 @@ rec {
 
       test "$(hostname)" = "rescue" || exit 1
       TARGET_DISK="/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-0"
+
+      if [ ! -f nixos.root.qcow2 ]; then
+          echo "Could not find disk image, downloading from github.com..."
+          curl -# -o nixos.root.qcow2 https://github.com/dep-sys/nix-dabei/releases/latest/download/nixos.root.qcow2
+      fi
 
       # you could just use dd if you build the image with format=raw, but
       # compressed qcow2 with lots of empty space in the image means ~700MB vs 3GB.
