@@ -22,7 +22,8 @@ And documentation is lacking, sorry ;)
   - starts the =fetch-instance-data= service to download instance-specifc metadata from the provider and store it in ~/var/run/instance-data.json~. This may include hostname, location, and other things.
   - starts the =rebuild-with-instance-data= service to rebuild the NixOS system from your original flake using the data it just acquired.
 
-*** The disk image itself is reusable for as many machines as you like, because =rebuild-with-instance-data= uses the hostname acquired from your provider to select the right =nixosConfiguration= from your flake, like:
+- The disk image itself is reusable for as many machines as you like, because =rebuild-with-instance-data= uses the hostname acquired from your provider to select the right =nixosConfiguration= from your flake, by effectively running:
+
 #+begin_src
     nixos-rebuild switch --upgrade --impure --flake "config#$hostname"
 #+end_src
