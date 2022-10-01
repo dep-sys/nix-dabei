@@ -8,7 +8,7 @@
     type = "github";
     owner = "dep-sys";
     repo = "nix-dabei";
-    ref = "zfs-disk-image";
+    ref = "main";
   };
 in {
   nix = {
