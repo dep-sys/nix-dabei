@@ -78,7 +78,7 @@
       enable = lib.mkDefault true;
       passwordAuthentication = lib.mkDefault false;
       permitRootLogin = lib.mkDefault "without-password";
-      authorizedKeysFiles = [ "/boot/%u.pub" ];
+      authorizedKeysFiles = lib.mkDefault [ "/boot/%u.pub" ];
     };
     # Allow building a system without passwords or pub keys, as we might get our ssh keys
     # only during runtime from /boot.

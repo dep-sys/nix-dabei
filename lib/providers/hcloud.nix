@@ -77,7 +77,9 @@ rec {
       set -euxo pipefail
 
       test "$(hostname)" = "rescue" || exit 1
-      TARGET_DISK="/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-0"
+
+      TARGET_FLAKE="$${1:-"github:dep-sys/nix-dabei#default"}"
+      TARGET_DISK="$${2:-"/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-0"}"
 
       if [ ! -f nixos.root.qcow2 ]; then
           echo "Could not find disk image, downloading from github.com..."
@@ -95,7 +97,8 @@ rec {
       sleep 3
       mount "$TARGET_DISK-part2" /mnt
 
-      python3 <<EOF
+      python3 - "$TARGET_FLAKE" <<EOF
+      import sys
       import json
       import yaml
       import requests
@@ -103,6 +106,7 @@ rec {
       response.raise_for_status()
 
       data = yaml.load(response.text, Loader=yaml.SafeLoader)
+      data['flake-url'] = sys.argv[1]
       with open('/mnt/instance-data.json', 'w') as instance_data:
         json.dump(data, instance_data)
       with open('/mnt/root.pub', 'w') as pub_key:

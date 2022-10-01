@@ -1,6 +1,7 @@
 {
   pkgs,
   lib,
+  config,
   inputs,
   ...
 }: let
@@ -16,7 +17,9 @@ in {
     registry = {
       nixpkgs.flake = inputs.nixpkgs;
       nix-dabei.to = nixDabeiRepo;
-      config.to = lib.mkDefault nixDabeiRepo;
+      config.to = if config.x.instance-data ? flake-url
+                  then config.x.instance-data.flake-url
+                  else nixDabeiRepo;
     };
     extraOptions = "experimental-features = nix-command flakes";
   };
