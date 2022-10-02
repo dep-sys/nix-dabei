@@ -47,8 +47,9 @@
       my-little-webserver = nix-dabei.lib.makeNixosConfiguration {
         extraModules = [colmena.nixosModules.deploymentOptions];
         modules = [
-          ({ config, pkgs, lib, ... }:
-            {
+          ({ config, pkgs, lib, ... }: {
+            users.users.root.password = "hunter2";
+            services.openssh.passwordAuthentication = true;
             deployment.targetHost = config.x.instance-data.data.public-ipv4;
             x.instance-data.storedPath = ./hosts/my-little-webserver.json;
             networking.hostName = "my-little-webserver";
