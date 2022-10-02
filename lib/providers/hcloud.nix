@@ -78,8 +78,8 @@ rec {
 
       test "$(hostname)" = "rescue" || exit 1
 
-      TARGET_FLAKE="$${1:-"github:dep-sys/nix-dabei#default"}"
-      TARGET_DISK="$${2:-"/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-0"}"
+      TARGET_FLAKE="''${1:-"github:dep-sys/nix-dabei#default"}"
+      TARGET_DISK="''${2:-"/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-0"}"
 
       if [ ! -f nixos.root.qcow2 ]; then
           echo "Could not find disk image, downloading from github.com..."
