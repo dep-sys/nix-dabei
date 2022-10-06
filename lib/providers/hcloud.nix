@@ -29,6 +29,9 @@ rec {
       NO_UPLOAD="''${NO_UPLOAD:-}"
 
       TARGET_NAME="$1"
+      TARGET_FLAKE="''${2:-"github:dep-sys/nix-dabei#default"}"
+      TARGET_DISK="''${3:-"/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-0"}"
+
       SSH_ARGS="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
       wait_for_ssh() {
           until ssh -o ConnectTimeout=2 $SSH_ARGS root@"$1" "true"
@@ -69,7 +72,7 @@ rec {
       fi
 
       echo "Installing to $TARGET_SERVER"
-      ssh $SSH_ARGS root@$TARGET_SERVER -t 'bash ./hcloud-do-install.sh'
+      ssh $SSH_ARGS root@$TARGET_SERVER -t "bash ./hcloud-do-install.sh $TARGET_FLAKE $TARGET_DISK"
 
   '';
   remoteScript = pkgs.writeScript "hcloud-do-install.sh" ''
