@@ -150,6 +150,7 @@ in {
             description = "Rebuild the host with live instance data from ${cfg.provider} on startup";
             path = with pkgs; [jq nixos-rebuild];
             script = ''
+              host_name=$(jq -r '.hostname' ${cfg.path} 2>/dev/null)
               flake_url=$(jq -r '."flake-url"' ${cfg.path} 2>/dev/null || echo "github:dep-sys/nix-dabei#default")
 
               ${lib.optionalString cfg.onlyOnce ''
