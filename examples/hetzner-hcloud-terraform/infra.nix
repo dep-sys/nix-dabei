@@ -26,7 +26,7 @@ let
     provisioner.remote-exec = {
       inline = [
         "curl -L -o hcloud-do-install.sh https://github.com/dep-sys/nix-dabei/releases/latest/download/hcloud-do-install.sh"
-        "bash hcloud-do-install.sh 'github:dep-sys/nix-dabei?ref=terraform&dir=examples/hetzner-hcloud-terraform#my-little-webserver'"
+        "bash hcloud-do-install.sh 'github:dep-sys/nix-dabei?dir=examples/hetzner-hcloud-terraform#my-little-webserver'"
       ];
       on_failure = "continue";
       connection = {
