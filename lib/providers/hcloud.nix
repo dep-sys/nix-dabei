@@ -26,7 +26,7 @@ rec {
   installScript = pkgs.writeShellScript "hcloud-create-machine.sh" ''
       set -euxo pipefail
 
-      NO_UPLOAD="$${NO_UPLOAD:-}"
+      NO_UPLOAD="''${NO_UPLOAD:-}"
 
       TARGET_NAME="$1"
       SSH_ARGS="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
