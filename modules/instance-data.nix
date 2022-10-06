@@ -35,7 +35,7 @@ in {
     path = lib.mkOption {
       type = lib.types.path;
       description = lib.mdDoc "path to store instance-data at on the target system.";
-      default = "/var/run/instance-data.json";
+      default = "/boot/instance-data.json";
     };
 
     storedPath = lib.mkOption {
@@ -128,29 +128,30 @@ in {
           };
         };
         systemd.services = {
-          fetch-instance-data = let
-            fetcher = providers.${cfg.provider}.fetchInstanceData cfg.path;
-          in services.make {
-            description = "Fetch instance data from ${cfg.provider} on startup";
-            serviceConfig.ExecStart = "${fetcher}/bin/hcloud-fetch-instance-data.sh";
-            mixins = with services.mixins; [
-              isOneShot
-              #isIsolated
-              neededByMultiUser
-              needsNetworking
-              (needsPath (
-                if cfg.onlyOnce
-                then "!${cfg.path}"
-                else null
-              ))
-              #(writesPath cfg.path)
-            ];
-          };
+          #fetch-instance-data = let
+          #  fetcher = providers.${cfg.provider}.fetchInstanceData cfg.path;
+          #in services.make {
+          #  description = "Fetch instance data from ${cfg.provider} on startup";
+          #  serviceConfig.ExecStart = "${fetcher}/bin/hcloud-fetch-instance-data.sh";
+          #  mixins = with services.mixins; [
+          #    isOneShot
+          #    #isIsolated
+          #    neededByMultiUser
+          #    needsNetworking
+          #    (needsPath (
+          #      if cfg.onlyOnce
+          #      then "!${cfg.path}"
+          #      else null
+          #    ))
+          #    #(writesPath cfg.path)
+          #  ];
+          #};
           rebuild-with-instance-data = services.make {
             description = "Rebuild the host with live instance data from ${cfg.provider} on startup";
-            path = with pkgs; [jq nettools nixos-rebuild];
+            path = with pkgs; [jq nixos-rebuild];
             script = ''
-              host_name=$(jq -r .hostname ${cfg.path} 2>/dev/null || echo "default")
+              flake_url=$(jq -r '."flake-url"' ${cfg.path} 2>/dev/null || echo "github:dep-sys/nix-dabei#default")
+
               ${lib.optionalString cfg.onlyOnce ''
                 if [ "$(hostname)" == "$host_name" ]
                 then
@@ -164,7 +165,7 @@ in {
                   ${lib.optionalString cfg.upgradeOnChange "--upgrade"} \
                   --impure \
                   --flake \
-                  "config#$host_name"
+                  $flake_url
             '';
             mixins = with services.mixins; [
               isOneShot
