@@ -150,8 +150,7 @@ in {
             description = "Rebuild the host with live instance data from ${cfg.provider} on startup";
             path = with pkgs; [jq nettools nixos-rebuild];
             script = ''
-              host_name="default" # FIXME just testing
-              #host_name=$(jq -r .hostname ${cfg.path} 2>/dev/null || echo "default")
+              host_name=$(jq -r .hostname ${cfg.path} 2>/dev/null || echo "default")
               ${lib.optionalString cfg.onlyOnce ''
                 if [ "$(hostname)" == "$host_name" ]
                 then
