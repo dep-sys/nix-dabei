@@ -1,13 +1,10 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nix-dabei = {
-      url = "github:dep-sys/nix-dabei";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-      };
-    };
+    nix-dabei.url = "github:dep-sys/nix-dabei";
+    nix-dabei.inputs.nixpkgs.follows = "nixpkgs";
     colmena.url = "github:zhaofengli/colmena/stable";
+    colmena.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = { self, nixpkgs, nix-dabei, colmena, ... } @ inputs: let
