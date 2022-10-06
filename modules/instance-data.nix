@@ -108,7 +108,7 @@ in {
           # DHCP works well enough for the moment.
           requires = ["network-online.target"];
         };
-        needsPath = path: {serviceConfig.ConditionPathExists = path;};
+        needsPath = path: {unitConfig.ConditionPathExists = path;};
         #writesPath = path: {serviceConfig.BindPaths = path; };
         #readsPath = path: {serviceConfig.BindReadOnlyPaths = path; };
       };
