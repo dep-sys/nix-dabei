@@ -5,11 +5,6 @@
   inputs,
   ...
 }: {
-  imports = [
-    ./nix.nix
-    ./instance-data.nix
-  ];
-
   options.x = {
     admins = lib.mkOption {
       description = lib.mdDoc "Attrset of admin username and ssh keys";

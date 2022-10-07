@@ -87,11 +87,14 @@
         nixosModules = {
           core = ./modules/core.nix;
           nix = ./modules/nix.nix;
+          instance-data = ./modules/instance-data.nix;
           zfs = ./modules/zfs.nix;
           vm = ./modules/vm.nix;
           default = { pkgs, modulesPath, ... }: {
             imports = with self.nixosModules; [
               core
+              nix
+              instance-data
               zfs
               "${modulesPath}/profiles/qemu-guest.nix"
               "${modulesPath}/profiles/headless.nix"
