@@ -104,9 +104,8 @@ in {
           wantedBy = ["multi-user.target"];
         };
         needsNetworking = {
-          # We need to have *some* network connection atm to reach hetzners metadata server.
-          # DHCP works well enough for the moment.
           requires = ["network-online.target"];
+          after = ["network-online.target"];
         };
         needsPath = path: {unitConfig.ConditionPathExists = path;};
         #writesPath = path: {serviceConfig.BindPaths = path; };
