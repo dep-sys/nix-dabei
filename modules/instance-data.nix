@@ -152,11 +152,6 @@ in {
             script = ''
               host_name=$(jq -r '.hostname' ${cfg.path} 2>/dev/null)
               flake_url=$(jq -r '."flake-url"' ${cfg.path} 2>/dev/null || echo "github:dep-sys/nix-dabei#default")
-              # network-online.target doesn't seem to work as intended, nix complains about not being online.
-              while ! ping -c 1 -w 1 cache.nixos.org &> /dev/null
-              do
-                  echo "waiting for  cache.nixos.org"
-              done
               ${lib.optionalString cfg.onlyOnce ''
                 if [ "$(hostname)" == "$host_name" ]
                 then
