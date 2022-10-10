@@ -51,7 +51,7 @@
       # This switches from traditional network interface names like "eth0" to predictable ones
       # like enp3s0. While the latter can be harder to predict, it should be stable, while
       # the former might not be.
-      usePredictableInterfaceNames = true;
+      usePredictableInterfaceNames = false;  # for test framework
     };
 
     # To enable zfs support (adds ~70MB to the image)
