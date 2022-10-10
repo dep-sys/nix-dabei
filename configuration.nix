@@ -5,7 +5,18 @@
   ];
 
   config = {
-    environment.systemPackages = [ ];
+    #environment.systemPackages = with pkgs; lib.mkForce [
+    #  nettools
+    #  lvm2
+    #  dosfstools
+    #  e2fsprogs
+    #  systemd
+    #  linux-pam
+    #  shadow
+    #  bashInteractive
+    #  less
+    #  util-linux
+    #];
     time.timeZone = "UTC";
     i18n.defaultLocale = "en_US.UTF-8";
     # TODO: replace this key!

@@ -74,7 +74,9 @@ with lib;
         }
 
         {
+          environment.defaultPackages = mkOverride' [];
           ## Disable Services
+          system.disableInstallerTools = mkOverride' true;
           boot.enableContainers = mkOverride' false;
           hardware.enableRedistributableFirmware = mkOverride' false;
           security.polkit.enable = mkOverride' false;
