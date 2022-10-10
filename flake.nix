@@ -1,8 +1,9 @@
 {
   description = "An operating system generator, based on not-os, focused on installation";
   inputs.nixpkgs.url = "nixpkgs/nixos-22.05";
+  inputs.disko.url = "github:nix-community/disko/master";
 
-  outputs = { self, nixpkgs }:
+  outputs = { self, nixpkgs, disko }:
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; overlays = [self.overlays.default]; };
@@ -51,7 +52,10 @@
 
       nixosConfigurations.default = nixpkgs.lib.nixosSystem {
         inherit system pkgs;
-        modules = [ ./configuration.nix ] ++ pkgs.lib.attrValues self.nixosModules;
+        modules = [
+          { _module.args = { disko = disko.lib; }; }
+          ./configuration.nix
+        ] ++ pkgs.lib.attrValues self.nixosModules;
       };
 
       nixosConfigurations.with-minimal-git =

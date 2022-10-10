@@ -1,4 +1,66 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, disko, ... }:
+let
+  diskConfig = {
+    disk = {
+      vda = {
+        type = "disk";
+        device = "/dev/vda";
+        content = {
+          type = "table";
+          format = "gpt";
+          partitions = [
+            {
+              type = "partition";
+              name = "ESP";
+              start = "0";
+              end = "256MiB";
+              fs-type = "fat32";
+              bootable = true;
+              content = {
+                type = "filesystem";
+                format = "vfat";
+                mountpoint = "/boot";
+              };
+            }
+            {
+              type = "partition";
+              name = "zfs";
+              start = "256MiB";
+              end = "100%";
+              content = {
+                type = "zfs";
+                pool = "rpool";
+              };
+            }
+          ];
+        };
+      };
+    };
+    zpool = {
+      rpool = {
+        type = "zpool";
+        mode = "";
+        rootFsOptions = {
+          compression = "zstd";
+        };
+        datasets = {
+          "root" = {
+             zfs_type = "filesystem";
+             mountpoint = "/";
+          };
+          "nix" = {
+             zfs_type = "filesystem";
+             mountpoint = "/nix";
+          };
+          "home" = {
+             zfs_type = "filesystem";
+             mountpoint = "/home";
+          };
+        };
+      };
+    };
+  };
+  in
 {
   config = {
     boot.kernelParams = [
@@ -28,10 +90,17 @@
 
 
     boot.initrd.systemd = {
-      extraBin.nix = "${pkgs.nix}/bin/nix";
-      extraBin.nixos-install = "${pkgs.nixos-install-tools}/bin/nixos-install";
       # Network is configured with kernelParams
       network.networks = { };
+
+      extraBin = {
+        nix = "${pkgs.nix}/bin/nix";
+        nixos-install = "${pkgs.nixos-install-tools}/bin/nixos-install";
+        parted = "${pkgs.parted}/bin/parted";
+        jq = "${pkgs.jq}/bin/jq";
+        tsp-create = pkgs.writeScript "tsp-create" (disko.create diskConfig);
+        tsp-mount = pkgs.writeScript "tsp-mount" (disko.mount diskConfig);
+      };
 
       # When these are enabled, they prevent useful output from
       # going to the console
