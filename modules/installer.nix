@@ -1,16 +1,8 @@
 { config, pkgs, lib, ... }:
 {
-  options = {
-    #networking.primaryIPAddress = lib.mkOption {
-    #  default = "10.0.2.2";
-    #  type = lib.types.str;
-    #};
-  };
-
   config = {
     boot.kernelParams = [
       "ip=dhcp"
-      #"ip=${config.networking.primaryIPAddress}:::255.255.255.0::eth0:none"
     ];
 
     boot.initrd.network = {

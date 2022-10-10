@@ -6,6 +6,9 @@
     server = { config, ... }: {
       imports = [./configuration.nix] ++ lib.attrValues nixosModules;
       networking.hostName = lib.mkForce "server";
+      boot.kernelParams = [
+        "ip=${config.networking.primaryIPAddress}:::255.255.255.0::eth1:none"
+      ];
     };
 
     client = { config, ... }: {
