@@ -34,15 +34,15 @@ with lib;
 
           boot.loader.grub.enable = mkOverride' false;
           boot.supportedFilesystems = mkOverride' config.boot.initrd.supportedFilesystems;
-          #boot.kernelParams = mkOverride' [
+          boot.kernelParams = [ #mkOverride' [
           #  "consoleblank=0"
           #  "console=tty1"
           #  "console=ttyS0"
-          #  "systemd.show_status=true"
-          #  "systemd.log_level=info"
-          #  "systemd.log_target=console"
-          #  "systemd.journald.forward_to_console=1"
-          #];
+            "systemd.show_status=true"
+            "systemd.log_level=info"
+            "systemd.log_target=console"
+            "systemd.journald.forward_to_console=1"
+          ];
         }
 
         (mkIf (config.nix-dabei.zfs.enable) {
@@ -57,19 +57,19 @@ with lib;
                 options = [ "mode=0755" ];
                 neededForBoot = true;
               };
-            "/nix/.ro-store" =
-              {
-                fsType = "squashfs";
-                device = "../nix-store.squashfs";
-                options = [ "loop" ];
-                neededForBoot = true;
-              };
-            "/nix/.rw-store" =
-              {
-                fsType = "tmpfs";
-                options = [ "mode=0755" ];
-                neededForBoot = true;
-              };
+            #"/nix/.ro-store" =
+            #  {
+            #    fsType = "squashfs";
+            #    device = "../nix-store.squashfs";
+            #    options = [ "loop" ];
+            #    neededForBoot = true;
+            #  };
+            #"/nix/.rw-store" =
+            #  {
+            #    fsType = "tmpfs";
+            #    options = [ "mode=0755" ];
+            #    neededForBoot = true;
+            #  };
           };
         }
 

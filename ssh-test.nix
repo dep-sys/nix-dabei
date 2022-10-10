@@ -4,41 +4,8 @@
 
   nodes = with lib; {
     server = { config, ... }: {
-      imports = [./configuration.nix nixosModules.base nixosModules.build nixosModules.initrd];
-
+      imports = [./configuration.nix] ++ lib.attrValues nixosModules;
       networking.hostName = lib.mkForce "server";
-      boot.kernelParams = [
-        "ip=${config.networking.primaryIPAddress}:::255.255.255.0::eth1:none"
-      ];
-      boot.initrd.network = {
-        enable = true;
-        ssh = {
-          enable = true;
-          authorizedKeys = [ (readFile ./initrd-network-ssh/id_ed25519.pub) ];
-          port = 22;
-          hostKeys = [ ./initrd-network-ssh/ssh_host_ed25519_key ];
-        };
-      };
-      boot.initrd.systemd = {
-        enable = true;
-        # Network is configured with kernelParams
-        network.networks = { };
-
-        # When these are enabled, they prevent useful output from
-        # going to the console
-        paths.systemd-ask-password-console.enable = false;
-        services.systemd-ask-password-console.enable = false;
-
-        services.wait = {
-          requiredBy = [ "initrd.target" ];
-          before = [ "initrd.target" ];
-          unitConfig.DefaultDependencies = false;
-          serviceConfig.Type = "oneshot";
-          script = ''
-            exec test $(systemd-ask-password) = foo
-          '';
-        };
-      };
     };
 
     client = { config, ... }: {

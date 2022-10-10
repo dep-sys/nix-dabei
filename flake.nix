@@ -20,8 +20,6 @@
         {
           inherit (config.system.build)
             initialRamdisk
-            toplevel
-            dist
             runvm;
           ssh-test = (import ./ssh-test.nix { inherit pkgs; lib = nixpkgs.lib; inherit (self) nixosModules; }); #.driverInteractive;
           default = config.system.build.toplevel;
@@ -73,6 +71,7 @@
         base = import ./modules/base.nix;
         initrd = import ./modules/initrd.nix;
         build = import ./modules/build.nix;
+        installer = import ./modules/installer.nix;
       };
 
       overlays.default = final: prev: {
