@@ -14,6 +14,19 @@
         hostKeys = [ ../initrd-network-ssh/ssh_host_ed25519_key ];
       };
     };
+
+    # Add libnss_dns, nameserver and certificates for outgoing https connections
+    boot.initrd.environment.etc = {
+      "resolv.conf".text = "nameserver 1.1.1.1";
+      "ssl/certs/ca-certificates.crt".source = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
+    };
+    boot.initrd.systemd.storePaths = [
+      # so nix can look up dns entries
+      "${pkgs.glibc}/lib/libnss_dns.so.2"
+    ];
+
+
+
     boot.initrd.systemd = {
       extraBin.nix = "${pkgs.nix}/bin/nix";
       extraBin.nixos-install = "${pkgs.nixos-install-tools}/bin/nixos-install";
