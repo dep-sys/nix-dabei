@@ -15,13 +15,13 @@
     # hosts as well as bare metal machines.
     # TODO: Can surely be improved/specialized to save a few bytes.
     # more low-hanging fruit atm, but patches welcome!
-    kernelModules = lib.mkOverride 60 [
-      "squashfs"
-      "loop"
-      "overlay"
-      "virtio_console"
-      "virtio_rng"
-    ];
+    #kernelModules = lib.mkOverride 60 [
+    #  "squashfs"
+    #  "loop"
+    #  "overlay"
+    #  "virtio_console"
+    #  "virtio_rng"
+    #];
     availableKernelModules = [
       "virtio_net"
       "virtio_blk"

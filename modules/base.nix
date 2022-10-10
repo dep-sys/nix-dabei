@@ -34,15 +34,15 @@ with lib;
 
           boot.loader.grub.enable = mkOverride' false;
           boot.supportedFilesystems = mkOverride' config.boot.initrd.supportedFilesystems;
-          boot.kernelParams = mkOverride' [
-            "consoleblank=0"
-            "console=tty1"
-            "console=ttyS0"
-            "systemd.show_status=true"
-            "systemd.log_level=info"
-            "systemd.log_target=console"
-            "systemd.journald.forward_to_console=1"
-          ];
+          #boot.kernelParams = mkOverride' [
+          #  "consoleblank=0"
+          #  "console=tty1"
+          #  "console=ttyS0"
+          #  "systemd.show_status=true"
+          #  "systemd.log_level=info"
+          #  "systemd.log_target=console"
+          #  "systemd.journald.forward_to_console=1"
+          #];
         }
 
         (mkIf (config.nix-dabei.zfs.enable) {
