@@ -5,7 +5,7 @@
   outputs = { self, nixpkgs }:
     let
       system = "x86_64-linux";
-      pkgs = import nixpkgs { inherit system; };
+      pkgs = import nixpkgs { inherit system; overlays = [self.overlays.default]; };
     in
     {
       packages.${system} =
@@ -55,15 +55,7 @@
       };
 
       nixosConfigurations.with-minimal-git =
-        let
-          gitMicro = (pkgs.gitMinimal.override {
-            perlSupport = false;
-            withManual = false;
-            pythonSupport = false;
-            withpcre2 = false;
-          }).overrideAttrs (_: { doInstallCheck = false; });
-
-        in nixpkgs.lib.nixosSystem {
+        nixpkgs.lib.nixosSystem {
           inherit system pkgs;
           modules = [
             ./configuration.nix
@@ -80,5 +72,17 @@
         initrd = import ./modules/initrd.nix;
         build = import ./modules/build.nix;
       };
+
+      overlays.default = final: prev: {
+        gitMicro = (pkgs.gitMinimal.override {
+          perlSupport = false;
+          withManual = false;
+          pythonSupport = false;
+          withpcre2 = false;
+        }).overrideAttrs (_: { doInstallCheck = false; });
+
+        zfs = prev.zfs;
+      };
+
     };
 }
