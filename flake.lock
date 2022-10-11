@@ -1,23 +1,60 @@
 {
   "nodes": {
+    "disko": {
+      "inputs": {
+        "nixpkgs": "nixpkgs"
+      },
+      "locked": {
+        "lastModified": 1664875822,
+        "narHash": "sha256-90bBm7tqXeKSGcnJ0NdtrNyUa2LlPCRm51rSLG97/rk=",
+        "owner": "nix-community",
+        "repo": "disko",
+        "rev": "c96ccd7d9fb48b8283e84811c2355a3c39bb2a52",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "ref": "master",
+        "repo": "disko",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
+      "locked": {
+        "lastModified": 1660646295,
+        "narHash": "sha256-V4G+egGRc3elXPTr7QLJ7r7yrYed0areIKDiIAlMLC8=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "762b003329510ea855b4097a37511eb19c7077f0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_2": {
       "locked": {
         "lastModified": 1660366805,
         "narHash": "sha256-uRqgvzCak2Lr7g5HR41EQBKrzjyikjLWyMaiLX7mc9k=",
-        "ref": "systemd-stage-1-networkd",
+        "owner": "ElvishJerricco",
+        "repo": "nixpkgs",
         "rev": "21a8c43a1acb5f44715ba8098d11a92e2d5d4ba0",
-        "revCount": 399635,
-        "type": "git",
-        "url": "file:///home/phaer/src/nixpkgs"
+        "type": "github"
       },
       "original": {
-        "type": "git",
-        "url": "file:///home/phaer/src/nixpkgs"
+        "owner": "ElvishJerricco",
+        "ref": "systemd-stage-1-networkd",
+        "repo": "nixpkgs",
+        "type": "github"
       }
     },
     "root": {
       "inputs": {
-        "nixpkgs": "nixpkgs"
+        "disko": "disko",
+        "nixpkgs": "nixpkgs_2"
       }
     }
   },
