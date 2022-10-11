@@ -87,8 +87,6 @@ let
       "${pkgs.glibc}/lib/libnss_dns.so.2"
     ];
 
-
-
     boot.initrd.systemd = {
       # Network is configured with kernelParams
       network.networks = { };
@@ -107,14 +105,36 @@ let
       paths.systemd-ask-password-console.enable = false;
       services.systemd-ask-password-console.enable = false;
 
-      services.wait = {
-        requiredBy = [ "initrd.target" ];
-        before = [ "initrd.target" ];
-        unitConfig.DefaultDependencies = false;
-        serviceConfig.Type = "oneshot";
-        script = ''
-            exec test $(systemd-ask-password) = foo
+      services = {
+
+        install-nixos = {
+          requires = ["network-online.target"];
+          after = ["network-online.target"];
+          requiredBy = [ "initrd-switch-root.service" ];
+          before = [ "initrd-switch-root.service" ];
+          unitConfig.DefaultDependencies = false;
+          serviceConfig.Type = "oneshot";
+          script = ''
+               nixos-install \
+               --root /mnt \
+               --no-root-passwd \
+               --flake github:dep-sys/nix-dabei/kexec#default
           '';
+        };
+
+        format-disk = {
+          requires = [ "systemd-udevd.service"];
+          after = [ "systemd-udevd.service"];
+          requiredBy = [ "install-nixos.service" ];
+          before = [ "install-nixos.service" ];
+          unitConfig.DefaultDependencies = false;
+          serviceConfig.Type = "oneshot";
+          script = ''
+            udevadm trigger --subsystem-match=block; udevadm settle
+            ${disko.create diskConfig}
+            ${disko.mount diskConfig}
+          '';
+        };
       };
     };
   };
