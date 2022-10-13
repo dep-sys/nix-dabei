@@ -4,6 +4,7 @@
   #inputs.nixpkgs.url = "nixpkgs/nixos-22.05";
   inputs.nixpkgs.url = "github:ElvishJerricco/nixpkgs/systemd-stage-1-networkd";
   inputs.disko.url = "github:nix-community/disko/master";
+  inputs.disko.inputs.nixpkgs.follows = "nixpkgs";
 
   outputs = { self, nixpkgs, disko }:
     let

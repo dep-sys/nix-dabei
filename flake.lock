@@ -2,7 +2,9 @@
   "nodes": {
     "disko": {
       "inputs": {
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": [
+          "nixpkgs"
+        ]
       },
       "locked": {
         "lastModified": 1664875822,
@@ -21,22 +23,6 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1660646295,
-        "narHash": "sha256-V4G+egGRc3elXPTr7QLJ7r7yrYed0areIKDiIAlMLC8=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "762b003329510ea855b4097a37511eb19c7077f0",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "ref": "nixos-unstable",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
-    "nixpkgs_2": {
-      "locked": {
         "lastModified": 1660366805,
         "narHash": "sha256-uRqgvzCak2Lr7g5HR41EQBKrzjyikjLWyMaiLX7mc9k=",
         "owner": "ElvishJerricco",
@@ -54,7 +40,7 @@
     "root": {
       "inputs": {
         "disko": "disko",
-        "nixpkgs": "nixpkgs_2"
+        "nixpkgs": "nixpkgs"
       }
     }
   },
