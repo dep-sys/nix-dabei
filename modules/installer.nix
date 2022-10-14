@@ -10,10 +10,18 @@ let
           format = "gpt";
           partitions = [
             {
+              name = "boot";
+              type = "partition";
+              start = "0";
+              end = "1M";
+              part-type = "primary";
+              flags = ["bios_grub"];
+            }
+            {
               type = "partition";
               name = "ESP";
-              start = "0";
-              end = "256MiB";
+              start = "1M";
+              end = "256M";
               fs-type = "fat32";
               bootable = true;
               content = {
@@ -25,7 +33,7 @@ let
             {
               type = "partition";
               name = "zfs";
-              start = "256MiB";
+              start = "256M";
               end = "100%";
               content = {
                 type = "zfs";
