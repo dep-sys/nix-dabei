@@ -23,7 +23,7 @@
         in
         {
           inherit (config.system.build)
-            initialRamdisk
+            dist
             runvm;
           ssh-test = (import ./ssh-test.nix { inherit pkgs; lib = nixpkgs.lib; inherit (self) nixosModules; }); #.driverInteractive;
           default = config.system.build.toplevel;
