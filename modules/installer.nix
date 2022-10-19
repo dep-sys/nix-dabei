@@ -89,6 +89,16 @@ let
     boot.initrd.environment.etc = {
       "resolv.conf".text = "nameserver 1.1.1.1";
       "ssl/certs/ca-certificates.crt".source = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
+      "nix/nix.conf".text = ''
+        build-users-group =
+        extra-experimental-features = nix-command flakes
+        # workaround https://github.com/NixOS/nix/issues/5076
+        sandbox = false
+      '';
+      "group".text = ''
+        root:x:0:
+        nogroup:x:65534:
+      '';
     };
     boot.initrd.systemd.storePaths = [
       # so nix can look up dns entries
@@ -100,8 +110,15 @@ let
       network.networks = { };
 
       extraBin = {
-        nix = "${pkgs.nix}/bin/nix";
-        nixos-install = "${pkgs.nixos-install-tools}/bin/nixos-install";
+        # nix & installer
+        nix = "${pkgs.nixStatic}/bin/nix";
+        nix-store = "${pkgs.nixStatic}/bin/nix-store";
+        nix-env = "${pkgs.nixStatic}/bin/nix-env";
+        busybox = "${pkgs.busybox-sandbox-shell}/bin/busybox";
+        nixos-enter = "${pkgs.nixos-install-tools}/bin/nixos-enter";
+        unshare = "${pkgs.util-linux}/bin/unshare";
+
+        # partitioning
         parted = "${pkgs.parted}/bin/parted";
         jq = "${pkgs.jq}/bin/jq";
         tsp-create = pkgs.writeScript "tsp-create" (disko.create diskConfig);
@@ -114,7 +131,6 @@ let
       services.systemd-ask-password-console.enable = false;
 
       services = {
-
         install-nixos = {
           requires = ["network-online.target"];
           after = ["network-online.target"];
@@ -123,10 +139,12 @@ let
           unitConfig.DefaultDependencies = false;
           serviceConfig.Type = "oneshot";
           script = ''
-               nixos-install \
-               --root /mnt \
-               --no-root-passwd \
-               --flake github:dep-sys/nix-dabei/kexec#default
+            cp -R /nix/* /mnt/nix
+            mount --bind /mnt/nix /nix
+            mkdir -p /mnt/etc
+            touch /mnt/etc/NIXOS
+            nix build --profile /mnt/nix/var/nix/profiles/system github:dep-sys/nix-dabei#nixosConfigurations.default.config.system.build.toplevel
+            NIXOS_INSTALL_BOOTLOADER=1 nixos-enter --root /mnt -- /run/current-system/bin/switch-to-configuration boot
           '';
         };
 
