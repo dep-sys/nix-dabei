@@ -22,7 +22,16 @@ let cfg = config.nix-dabei; in
     })
 
     {
+      # nix does not build without a root fs
+      fileSystems."/" =
+        {
+          fsType = "tmpfs";
+          options = [ "mode=0755" ];
+          neededForBoot = true;
+        };
+
       boot = {
+        loader.grub.enable = false;
         kernelParams = [
           "ip=dhcp"
         ];
