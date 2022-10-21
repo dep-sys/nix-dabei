@@ -15,11 +15,6 @@ jobs:
         name: nix-dabei
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
-    - name: Build toplevel
-      run: nix build -L .#toplevel
-    - name: Show size
-      run: du -h $(nix-store -qR result) --max=0 -BM|sort -n
-
     - name: Build dist
       run: nix build -L .#dist
     - name: Show size
