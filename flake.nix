@@ -9,7 +9,7 @@
   outputs = { self, nixpkgs, disko }:
     let
       system = "x86_64-linux";
-      pkgs = import nixpkgs { inherit system; overlays = [self.overlays.default]; };
+      pkgs = nixpkgs.legacyPackages.${system};
     in
     {
       packages.${system} =
@@ -29,30 +29,6 @@
           default = config.system.build.toplevel;
         } // tests;
 
-      apps.${system} =
-        let
-          scripts = pkgs.lib.mapAttrs makeShellScript {
-            lint = "${pkgs.nix-linter}/bin/nix-linter **/*.nix *.nix";
-            format = "${pkgs.nixpkgs-fmt}/bin/nixpkgs-fmt **/*.nix *.nix";
-            repl = "nix repl repl.nix";
-            docs = "cp -L --no-preserve=mode ${self.packages.${system}.docs}/options.md options.md";
-          };
-          packages = pkgs.lib.mapAttrs makePackageApp {
-            vm = { program = self.packages.${system}.runvm; };
-          };
-          makeSimpleApp = program:
-            { type = "app"; program = toString program; };
-          makeShellScript = name: content:
-            makeSimpleApp (pkgs.writeScript name content);
-          makePackageApp = name: { program ? null }:
-            makeSimpleApp self.packages.${system}.${program || name};
-        in
-        scripts // packages // { default = packages.vm; };
-
-      devShells.${system}.default = pkgs.mkShell {
-        buildInputs = with pkgs; [ nix-tree nvd ];
-      };
-
       nixosConfigurations.default = nixpkgs.lib.nixosSystem {
         inherit system pkgs;
         modules = [
@@ -61,36 +37,9 @@
         ] ++ pkgs.lib.attrValues self.nixosModules;
       };
 
-      nixosConfigurations.with-minimal-git =
-        nixpkgs.lib.nixosSystem {
-          inherit system pkgs;
-          modules = [
-            ./configuration.nix
-            ({pkgs, ...}: {
-              environment.systemPackages = [
-                pkgs.gitMicro
-              ];
-            })
-          ] ++ pkgs.lib.attrValues self.nixosModules;
-        };
-
       nixosModules = {
-        base = import ./modules/base.nix;
-        initrd = import ./modules/initrd.nix;
         build = import ./modules/build.nix;
         installer = import ./modules/installer.nix;
       };
-
-      overlays.default = final: prev: {
-        gitMicro = (pkgs.gitMinimal.override {
-          perlSupport = false;
-          withManual = false;
-          pythonSupport = false;
-          withpcre2 = false;
-        }).overrideAttrs (_: { doInstallCheck = false; });
-
-        zfs = prev.zfs;
-      };
-
     };
 }
