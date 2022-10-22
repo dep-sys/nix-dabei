@@ -1,67 +1,94 @@
 { pkgs, system, self }:
 let
   lib = pkgs.lib;
-  extraConfigurations = [
-    ./configuration.nix
-    ({ networking.usePredictableInterfaceNames = lib.mkForce false; })
-  ] ++ lib.attrValues self.nixosModules;
-  testTools = import (pkgs.path + "/nixos/lib/testing-python.nix") { inherit system extraConfigurations; };
+  baseConfig =
+    [
+      ./configuration.nix
+    ] ++ lib.attrValues self.nixosModules;
 
-
-  mkTest = nodes: testScript:
-    testTools.simpleTest {
-      inherit testScript;
-      nodes = lib.mapAttrs (n: v: lib.recursiveUpdate v { config.networking.hostName = lib.mkForce n; }) nodes;
+  mkTest = { name, nodes, testScript }:
+    pkgs.nixosTest {
+      inherit name nodes testScript;
+      meta.maintainers = [ lib.maintainers.phaer ];
     };
 in {
-  simple = mkTest
-    {
-      node1 = {};
-    }
-    ({ nodes }: ''
-      with subtest("handover to stage-2 systemd works"):
-          node1.wait_for_unit("multi-user.target")
-          #node1.succeed("systemd-analyze | grep -q '(initrd)'")  # direct handover
-          node1.succeed("touch /testfile")  # / is writable
-          node1.fail("touch /nix/store/testfile")  # /nix/store is not writable
-          # Special filesystems are mounted by systemd
-          node1.succeed("[ -e /run/booted-system ]") # /run
-          node1.succeed("[ -e /sys/class ]") # /sys
-          node1.succeed("[ -e /dev/null ]") # /dev
-          node1.succeed("[ -e /proc/1 ]") # /proc
-          # stage-2-init mounted more special filesystems
-          node1.succeed("[ -e /dev/shm ]") # /dev/shm
-          node1.succeed("[ -e /dev/pts/ptmx ]") # /dev/pts
-          node1.succeed("[ -e /run/keys ]") # /run/keys
-
-      with subtest("nix flake runs"):
-          node1.succeed("nix flake --help")
-    '');
-
-  kexec = mkTest
-    {
-      node1 = {};
-      node2 = {
-        # TODO we need to use the same priority as in base.nix here, because we just want to *add*,
-        # not override our overriden systemPackages. Removing individual systemPackages in base.nix
-        # instead of overriding the default set completely would be preferred, and should be possible
-        # with extendModules, but I haven't got that to work with nixosTest yet.
-        config.environment.systemPackages = lib.mkOverride 60 [ pkgs.hello ];
+  test-ssh = mkTest {
+    name = "ssh";
+    nodes = with lib; {
+      installer = { config, ... }: {
+        imports = baseConfig;
+        networking.hostName = lib.mkForce "installer";
+        boot.kernelParams = [
+          "ip=${config.networking.primaryIPAddress}:::255.255.255.0::eth1:none"
+        ];
       };
-    }
-    ({ nodes }: ''
-      start_all()
-      with subtest("kexec works"):
-          node2.wait_for_unit("multi-user.target")
-          node2.shutdown()
 
-          # Kexec node1 to the toplevel of node2 via the kexec-boot script
-          node1.succeed('touch /run/foo')
-          node1.fail('hello')
-          node1.execute('${nodes.node2.config.system.build.dist}/kexec-boot', check_return=False)
-          node1.succeed('! test -e /run/foo')
-          node1.succeed('hello')
-          node1.succeed('[ "$(hostname)" = "node2" ]')
-          node1.shutdown()
-    '');
+      client = { config, ... }: {
+        environment.etc = {
+          knownHosts = {
+            text = concatStrings [
+              "installer,"
+              "${
+                toString (head (splitString " " (toString
+                  (elemAt (splitString "\n" config.networking.extraHosts) 2))))
+              } "
+              "${readFile ./initrd-network-ssh/ssh_host_ed25519_key.pub}"
+            ];
+          };
+          sshKey = {
+            source = ./initrd-network-ssh/id_ed25519;
+            mode = "0600";
+          };
+        };
+      };
+    };
+
+    testScript = ''
+    start_all()
+    client.wait_for_unit("network.target")
+
+
+    def ssh_is_up(_) -> bool:
+        status, _ = client.execute("nc -z installer 22")
+        return status == 0
+
+
+    with client.nested("waiting for SSH server to come up"):
+        retry(ssh_is_up)
+
+
+    client.succeed(
+        "ssh -i /etc/sshKey -o UserKnownHostsFile=/etc/knownHosts installer 'ls /sysroot'"
+    )
+  '';
+  };
+
+  test-kexec = mkTest {
+    # TODO this test is currently broken as the test driver is seemingly unable to re-connect
+    # to the console after switching kernels. This works manually though...
+    name = "kexec";
+    nodes = {
+      target = {};
+      installer =
+        { config, ... }: {
+          imports = baseConfig;
+          networking.hostName = lib.mkForce "installer";
+          boot.kernelParams = [
+            "ip=${config.networking.primaryIPAddress}:::255.255.255.0::eth1:none"
+          ];
+        };
+   };
+    testScript = { nodes }: ''
+      target.wait_for_unit("multi-user.target")
+
+      # Kexec target to the toplevel of installer via the kexec-boot script
+      target.succeed('touch /run/foo')
+      target.fail('[ "$(hostname)" = "installer" ]')
+      target.execute('${nodes.installer.system.build.dist}/kexec-boot', check_return=False)
+      target.wait_for_unit("initrd.target")
+      target.succeed('! test -e /run/foo')
+      target.succeed('test "$(cat /etc/hostname)" = "installer"')
+      target.shutdown()
+    '';
+  };
 }

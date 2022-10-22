@@ -5,20 +5,11 @@
   ];
 
   config = {
-    #environment.systemPackages = with pkgs; lib.mkForce [
-    #  nettools
-    #  lvm2
-    #  dosfstools
-    #  e2fsprogs
-    #  systemd
-    #  linux-pam
-    #  shadow
-    #  bashInteractive
-    #  less
-    #  util-linux
-    #];
+    nix-dabei.zfs.enable = true;
+
     time.timeZone = "UTC";
     i18n.defaultLocale = "en_US.UTF-8";
+
     # TODO: replace this key!
     # It's my personal public key, provided as an example.
     # Nix 2.9 will allow us to use https://github.com/phaer.keys
@@ -29,36 +20,18 @@
     ];
     services.openssh.enable = true;
 
-
     networking = {
-      # hostName of the live system, used to quickly identify a running
-      # one.
       hostName = "nix-dabei";
       # hostId is required by NixOS ZFS module, to distinquish systems from each other.
       # installed systems should have a unique one, tied to hardware. For a live system such
       # as this, it seems sufficient to use a static one.
       hostId = builtins.substring 0 8 (builtins.hashString "sha256" config.networking.hostName);
-
-      # Just an example, you can set your own nameservers or leave them empty if dhcp is used.
-      nameservers = [
-        # Cloudflare DNS
-        "1.1.1.1"
-        "1.0.0.1"
-        "2606:4700:4700::1111"
-        "2606:4700:4700::1001"
-      ];
-
       # This switches from traditional network interface names like "eth0" to predictable ones
       # like enp3s0. While the latter can be harder to predict, it should be stable, while
       # the former might not be.
       usePredictableInterfaceNames = false;  # for test framework
     };
 
-    # To enable zfs support (adds ~70MB to the image)
-    nix-dabei.zfs.enable = true;
-    # Or if you prefer the unstable version
-    # boot.kernelPackages = lib.mkForce pkgs.zfsUnstable.latestCompatibleLinuxPackages;
-    # boot.zfs.enableUnstable = true;
 
     # Nix-dabei isn't intended to keep state, but NixOS wants
     # it defined and it does not hurt. You are still able to

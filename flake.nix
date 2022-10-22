@@ -16,28 +16,24 @@
         with pkgs;
         let
          config = self.nixosConfigurations.default.config;
-         tests = pkgs.lib.mapAttrs'
-           (n: v: pkgs.lib.nameValuePair "test-${n}" v)
-           (import ./tests.nix { inherit pkgs system self; });
-
+         tests = import ./tests.nix { inherit pkgs system self; };
         in
-        {
-          inherit (config.system.build)
-            dist
-            runvm;
-          ssh-test = (import ./ssh-test.nix { inherit pkgs; lib = nixpkgs.lib; inherit (self) nixosModules; }); #.driverInteractive;
-          default = config.system.build.toplevel;
-        } // tests;
+          tests // {
+            inherit (config.system.build)
+              dist
+              runvm;
+            default = config.system.build.dist;
+          };
 
       nixosConfigurations.default = nixpkgs.lib.nixosSystem {
         inherit system pkgs;
         modules = [
-          { _module.args = { disko = disko.lib; }; }
           ./configuration.nix
         ] ++ pkgs.lib.attrValues self.nixosModules;
       };
 
       nixosModules = {
+        disko = { _module.args = { disko = disko.lib; }; };
         build = import ./modules/build.nix;
         installer = import ./modules/installer.nix;
       };
