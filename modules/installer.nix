@@ -59,15 +59,15 @@ let cfg = config.nix-dabei; in
         "resolv.conf".text = "nameserver 1.1.1.1";
         "ssl/certs/ca-certificates.crt".source = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
         "nix/nix.conf".text = ''
-        build-users-group =
-        extra-experimental-features = nix-command flakes
-        # workaround https://github.com/NixOS/nix/issues/5076
-        sandbox = false
-      '';
+            build-users-group =
+            extra-experimental-features = nix-command flakes
+            # workaround https://github.com/NixOS/nix/issues/5076
+            sandbox = false
+        '';
         "group".text = ''
-        root:x:0:
-        nogroup:x:65534:
-      '';
+            root:x:0:
+            nogroup:x:65534:
+        '';
       };
 
       boot.initrd.systemd = {
@@ -76,12 +76,6 @@ let cfg = config.nix-dabei; in
 
         # Network is configured with kernelParams
         network.networks = { };
-
-        # TODO shouldn't be needed with nixStatic anymore?
-        storePaths = [
-          # so nix can look up dns entries
-          "${pkgs.glibc}/lib/libnss_dns.so.2"
-        ];
 
         extraBin = {
           # nix & installer
