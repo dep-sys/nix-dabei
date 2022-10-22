@@ -40,7 +40,7 @@ with lib;
           test -f disk.img || ${pkgs.qemu_kvm}/bin/qemu-img create -f qcow2 disk.img 10G
           exec ${pkgs.qemu_kvm}/bin/qemu-kvm -name nix-dabei -m 2048 \
             -kernel ${kernel} -initrd ${initrd} -nographic \
-            -append "console=ttyS0 init=${pkgs.bash}/bin/bash ${kernelParams} " -no-reboot \
+            -append "console=ttyS0 init=/bin/init ${kernelParams} " -no-reboot \
             -net nic,model=virtio \
             -net user,net=10.0.2.0/24,host=10.0.2.2,dns=10.0.2.3,hostfwd=tcp::2222-:22 \
             -drive file=disk.img,format=qcow2,if=virtio \
