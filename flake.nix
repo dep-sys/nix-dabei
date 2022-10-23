@@ -1,5 +1,5 @@
 {
-  description = "An operating system generator, based on not-os, focused on installation";
+  description = "A minimal initrd, capable of running sshd and nix.";
   # needs https://github.com/NixOS/nixpkgs/pull/169116/files
   #inputs.nixpkgs.url = "nixpkgs/nixos-22.05";
   inputs.nixpkgs.url = "github:ElvishJerricco/nixpkgs/systemd-stage-1-networkd";
