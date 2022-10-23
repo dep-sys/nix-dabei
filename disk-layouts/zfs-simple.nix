@@ -50,15 +50,15 @@
         compression = "zstd";
       };
       datasets = {
-        "root" = {
+        "local/root" = {
           zfs_type = "filesystem";
           mountpoint = "/";
         };
-        "nix" = {
+        "local/nix" = {
           zfs_type = "filesystem";
           mountpoint = "/nix";
         };
-        "home" = {
+        "safe/home" = {
           zfs_type = "filesystem";
           mountpoint = "/home";
         };
