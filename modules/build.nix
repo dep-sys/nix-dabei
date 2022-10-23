@@ -6,27 +6,17 @@ with lib;
         kernelFile = config.system.boot.loader.kernelFile;
         kernel = "${config.system.build.kernel}/${kernelFile}";
         initrd = "${config.system.build.initialRamdisk}/initrd";
+        kexec = "${pkgs.pkgsStatic.kexec-tools}/bin/kexec";
         kexecScript = pkgs.writeScript "kexec-boot" ''
           #!/usr/bin/env bash
-          TO_INSTALL=""
-          command -v kexec || TO_INSTALL="kexec-tools $TO_INSTALL"
-          if [ -n "$TO_INSTALL" ]; then
-            if command -v apt; then
-              echo "apt found, but no $TO_INSTALL. Installing..."
-              apt update -y && DEBIAN_FRONTEND=noninteractive apt install -y $TO_INSTALL
-            else
-              echo "apt not found, please install: $TO_INSTALL"
-              exit 1;
-            fi
-          fi
           SCRIPT_DIR=$( cd -- "$( dirname -- "''${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-          kexec --load ''${SCRIPT_DIR}/${kernelFile} \
+          ''${SCRIPT_DIR}/kexec --load ''${SCRIPT_DIR}/${kernelFile} \
             --initrd=''${SCRIPT_DIR}/initrd \
             --command-line "init=/bin/init ${kernelParams}"
           if systemctl --version >/dev/null 2>&1; then
             systemctl kexec
           else
-            kexec -e
+            ''${SCRIPT_DIR}/kexec -e
           fi
        '';
     in {
@@ -35,6 +25,7 @@ with lib;
                 { name = "initrd"; path = initrd; }
                 { name = "bzImage"; path = kernel; }
                 { name = "kexec-boot"; path = kexecScript; }
+                { name = "kexec"; path = kexec; }
             ];
         system.build.installerVM = pkgs.writeShellScriptBin "installer-vm" ''
           test -f disk.img || ${pkgs.qemu_kvm}/bin/qemu-img create -f qcow2 disk.img 10G
