@@ -27,7 +27,27 @@ let cfg = config.nix-dabei; in
     })
 
     {
-      # nix does not build without a root fs
+      documentation.enable = false;
+      time.timeZone = "UTC";
+      i18n.defaultLocale = "en_US.UTF-8";
+      networking = {
+        hostName = "nix-dabei";
+        # hostId is required by NixOS ZFS module, to distinquish systems from each other.
+        # installed systems should have a unique one, tied to hardware. For a live system such
+        # as this, it seems sufficient to use a static one.
+        hostId = builtins.substring 0 8 (builtins.hashString "sha256" config.networking.hostName);
+        # This switches from traditional network interface names like "eth0" to predictable ones
+        # like enp3s0. While the latter can be harder to predict, it should be stable, while
+        # the former might not be.
+        usePredictableInterfaceNames = false;  # for test framework
+      };
+      # Nix-dabei isn't intended to keep state, but NixOS wants
+      # it defined and it does not hurt. You are still able to
+      # install any realease with the images built.
+      system.stateVersion = "22.11";
+
+      # toplevel does not build without a root fs but is useful for debugging
+      # and it does not seem to hurt
       fileSystems."/" =
         {
           fsType = "tmpfs";
