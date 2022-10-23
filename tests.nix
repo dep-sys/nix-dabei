@@ -18,8 +18,11 @@ in {
       installer = { config, ... }: {
         imports = baseConfig;
         networking.hostName = lib.mkForce "installer";
+
+        users.users.root.openssh.authorizedKeys.keys = mkForce [(readFile ./fixtures/id_ed25519.pub)];
         boot.kernelParams = [
           "ip=${config.networking.primaryIPAddress}:::255.255.255.0::eth1:none"
+          "ssh_host_key=LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0KYjNCbGJuTnphQzFyWlhrdGRqRUFBQUFBQkc1dmJtVUFBQUFFYm05dVpRQUFBQUFBQUFBQkFBQUFNd0FBQUF0emMyZ3RaVwpReU5UVXhPUUFBQUNEUDlNejZxbHhkUXFBNG9tcmdiT2xWc3hTR09OQ0pzdGpXOXpxcXVhamxJQUFBQUpnMFdHRkdORmhoClJnQUFBQXR6YzJndFpXUXlOVFV4T1FBQUFDRFA5TXo2cWx4ZFFxQTRvbXJnYk9sVnN4U0dPTkNKc3RqVzl6cXF1YWpsSUEKQUFBRUEwSGpzN0xmRlBkVGYzVGhHeDZHTkt2WDBJdGd6Z1hzOTFaM29HSWFGNlM4LzB6UHFxWEYxQ29EaWlhdUJzNlZXegpGSVk0MElteTJOYjNPcXE1cU9VZ0FBQUFFRzVwZUdKc1pFQnNiMk5oYkdodmMzUUJBZ01FQlE9PQotLS0tLUVORCBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K"
         ];
       };
 
@@ -32,11 +35,11 @@ in {
                 toString (head (splitString " " (toString
                   (elemAt (splitString "\n" config.networking.extraHosts) 2))))
               } "
-              "${readFile ./initrd-network-ssh/ssh_host_ed25519_key.pub}"
+              "${readFile ./fixtures/ssh_host_ed25519_key.pub}"
             ];
           };
           sshKey = {
-            source = ./initrd-network-ssh/id_ed25519;
+            source = ./fixtures/id_ed25519;
             mode = "0600";
           };
         };
