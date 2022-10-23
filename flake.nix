@@ -1,8 +1,10 @@
 {
   description = "A minimal initrd, capable of running sshd and nix.";
-  # needs https://github.com/NixOS/nixpkgs/pull/169116/files
-  #inputs.nixpkgs.url = "nixpkgs/nixos-22.05";
-  inputs.nixpkgs.url = "github:ElvishJerricco/nixpkgs/systemd-stage-1-networkd";
+  # this is a temporary fork including the changes from
+  # https://github.com/NixOS/nixpkgs/pull/169116/files
+  # and a small patch in https://github.com/NixOS/nixpkgs/pull/197382
+  # (rebased on master from time to time)
+  inputs.nixpkgs.url = "github:phaer/nixpkgs/nix-dabei";
   inputs.disko.url = "github:nix-community/disko/master";
   inputs.disko.inputs.nixpkgs.follows = "nixpkgs";
 
