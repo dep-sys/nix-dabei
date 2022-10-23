@@ -1,8 +1,8 @@
-{ device ? "/dev/vda" }: {
+{ diskDevice }: {
   disk = {
-    vda = {
+    ${diskDevice} = {
+      device = diskDevice;
       type = "disk";
-      device = "/dev/vda";
       content = {
         type = "table";
         format = "gpt";

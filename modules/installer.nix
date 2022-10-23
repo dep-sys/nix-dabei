@@ -3,10 +3,15 @@ let cfg = config.nix-dabei; in
 {
   options.nix-dabei = with lib; {
     zfs.enable = mkEnableOption "enable ZFS";
+    diskDevice = mkOption {
+      description = "disk to NUKE";
+      type = types.str;
+      default = "/dev/vda";
+    };
     diskLayout = mkOption {
       description = "disk layout to install";
       type = types.attrs;
-      default = import ../disk-layouts/zfs-simple.nix { };
+      default = import ../disk-layouts/zfs-simple.nix { inherit (cfg) diskDevice; };
     };
   };
 
