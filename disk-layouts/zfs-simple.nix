@@ -48,20 +48,28 @@
       mode = "";
       rootFsOptions = {
         compression = "zstd";
+        acltype = "posixacl";
+        atime = "off";
+        mountpoint = "none";
+        canmount = "off";
+        xattr = "sa";
       };
-      datasets = {
-        "local/root" = {
+      datasets = let
+        unmountable = {
           zfs_type = "filesystem";
-          mountpoint = "/";
+          mountpoint = null;
+          options.canmount = "off";
         };
-        "local/nix" = {
+        filesystem = mountpoint: {
           zfs_type = "filesystem";
-          mountpoint = "/nix";
+          inherit mountpoint;
         };
-        "safe/home" = {
-          zfs_type = "filesystem";
-          mountpoint = "/home";
-        };
+      in {
+        "local" = unmountable;
+        "safe" = unmountable;
+        "local/root" = filesystem "/";
+        "local/nix" = filesystem "/nix";
+        "safe/home" = filesystem "/home";
       };
     };
   };
