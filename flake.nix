@@ -21,7 +21,7 @@
           tests // {
             inherit (config.system.build)
               kexec
-              runvm;
+              installerVM;
             default = config.system.build.kexec;
           };
 
@@ -34,6 +34,7 @@
       nixosConfigurations.default = self.lib.makeSystem [
           ./configuration.nix
       ];
+
       nixosModules = {
         disko = { _module.args = { disko = disko.lib; }; };
         build = import ./modules/build.nix;
