@@ -87,7 +87,7 @@ in {
       # Kexec target to the toplevel of installer via the kexec-boot script
       target.succeed('touch /run/foo')
       target.fail('[ "$(hostname)" = "installer" ]')
-      target.execute('${nodes.installer.system.build.dist}/kexec-boot', check_return=False)
+      target.execute('${nodes.installer.system.build.kexec}/kexec-boot', check_return=False)
       target.wait_for_unit("initrd.target")
       target.succeed('! test -e /run/foo')
       target.succeed('test "$(cat /etc/hostname)" = "installer"')

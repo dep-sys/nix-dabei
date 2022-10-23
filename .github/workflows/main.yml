@@ -15,7 +15,7 @@ jobs:
         name: nix-dabei
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
-    - name: Build dist
-      run: nix build -L .#dist
+    - name: Build kexec
+      run: nix build -L .#kexec
     - name: Show size
       run: du -Lh  result/*

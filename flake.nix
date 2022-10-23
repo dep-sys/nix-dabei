@@ -20,9 +20,9 @@
         in
           tests // {
             inherit (config.system.build)
-              dist
+              kexec
               runvm;
-            default = config.system.build.dist;
+            default = config.system.build.kexec;
           };
 
       nixosConfigurations.default = nixpkgs.lib.nixosSystem {

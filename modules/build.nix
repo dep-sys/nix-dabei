@@ -30,8 +30,8 @@ with lib;
           fi
        '';
     in {
-        system.build.dist =
-            pkgs.linkFarm "kexec-boot" [
+        system.build.kexec =
+            pkgs.linkFarm "kexec" [
                 { name = "initrd"; path = initrd; }
                 { name = "bzImage"; path = kernel; }
                 { name = "kexec-boot"; path = kexecScript; }
