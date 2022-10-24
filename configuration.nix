@@ -5,7 +5,11 @@
   ];
 
   config = {
-    nix-dabei.zfs.enable = true;
+    nix-dabei = {
+      zfs.enable = true;
+      # disk to NUKE and DELETE ALL DATA. /dev/vda in qemu.
+      diskDevice = "/dev/vda";
+    };
     # TODO: replace this key!
     # It's my personal public key, provided as an example.
     # Nix 2.9 will allow us to use https://github.com/phaer.keys
