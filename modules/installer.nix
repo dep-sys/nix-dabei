@@ -165,6 +165,71 @@ let cfg = config.nix-dabei; in
             '';
           };
 
+          # move everything in / to /sysroot and switch-root into
+          # it. This runs a few things twice and wastes some memory
+          # but is necessary for nix --store flag as pivot_root does
+          # not work on rootfs.
+          remount-root = {
+            requires = [ "systemd-udevd.service" "initrd-root-fs.target"];
+            after = [ "systemd-udevd.service"];
+            requiredBy = [ "initrd-fs.target" ];
+            before = [ "initrd-fs.target" ];
+
+            unitConfig.DefaultDependencies = false;
+            serviceConfig.Type = "oneshot";
+            script = ''
+                root_fs_type="$(mount|awk '$3 == "/" { print $1 }')"
+                if [ "$root_fs_type" != "tmpfs" ]; then
+                    cp -R /bin /etc  /init  /lib  /nix  /root  /sbin  /var /sysroot
+                    systemctl --no-block switch-root /sysroot /bin/init
+                fi
+            '';
+          };
+
+          format-disk = {
+            requires = [ "systemd-udevd.service" "initrd-fs.target"];
+            after = [ "systemd-udevd.service"];
+            requiredBy = [ "install-nixos.service" ];
+            before = [ "install-nixos.service" ];
+            unitConfig.DefaultDependencies = false;
+            serviceConfig.Type = "oneshot";
+            script = ''
+                udevadm trigger --subsystem-match=block; udevadm settle
+                sleep 1
+                ${disko.create cfg.diskLayout}
+                ${disko.mount cfg.diskLayout}
+            '';
+          };
+
+         install-nixos = {
+            requires = ["network-online.target"];
+            after = ["network-online.target"];
+            requiredBy = [ "reboot-after-install.service" ];
+            before = [ "reboot-after-install.service" ];
+            unitConfig.DefaultDependencies = false;
+            serviceConfig.Type = "oneshot";
+            script = ''
+                mkdir -p /mnt/etc
+                touch /mnt/etc/NIXOS
+                nix build  --store /mnt --profile /mnt/nix/var/nix/profiles/system github:phaer/test-flake#nixosConfigurations.web-01
+                NIXOS_INSTALL_BOOTLOADER=1 nixos-enter --root /mnt -- /run/current-system/bin/switch-to-configuration boot
+            '';
+          };
+
+          reboot-after-install = {
+            requires = ["install-nixos.service"];
+            after = ["install-nixos.service"];
+            requiredBy = [ "initrd.target" ];
+            before = [ "initrd.target" ];
+            unitConfig.DefaultDependencies = false;
+            serviceConfig.Type = "oneshot";
+            script = ''
+                umount /mnt/boot
+                zfs umount -a
+                zpool export rpool
+                reboot
+            '';
+          };
 
           #shell = {
           #  requiredBy = [ "initrd.target" ];
@@ -176,36 +241,8 @@ let cfg = config.nix-dabei; in
           #  '';
           #};
 
-          #install-nixos = {
-          #  requires = ["network-online.target"];
-          #  after = ["network-online.target"];
-          #  requiredBy = [ "initrd.target" ];
-          #  before = [ "initrd.target" ];
-          #  unitConfig.DefaultDependencies = false;
-          #  serviceConfig.Type = "oneshot";
-          #  script = ''
-          #  cp -R /nix/* /sysroot/nix
-          #  mount --bind /sysroot/nix /nix
-          #  mkdir -p /sysroot/etc
-          #  touch /sysroot/etc/NIXOS
-          #  nix build --profile /sysroot/nix/var/nix/profiles/system github:dep-sys/nix-dabei#nixosConfigurations.default.config.system.build.toplevel
-          #  NIXOS_INSTALL_BOOTLOADER=1 nixos-enter --root /sysroot -- /run/current-system/bin/switch-to-configuration boot
-          #'';
-          #};
 
-          #format-disk = {
-          #  requires = [ "systemd-udevd.service" "initrd-fs.target"];
-          #  after = [ "systemd-udevd.service"];
-          #  requiredBy = [ "install-nixos.service" ];
-          #  before = [ "install-nixos.service" ];
-          #  unitConfig.DefaultDependencies = false;
-          #  serviceConfig.Type = "oneshot";
-          #  script = ''
-          #  udevadm trigger --subsystem-match=block; udevadm settle
-          #  ${disko.create cfg.diskLayout}
-          #  ${disko.mount cfg.diskLayout}
-          #'';
-          #};
+
 
         };
       };
