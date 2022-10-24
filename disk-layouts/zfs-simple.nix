@@ -67,8 +67,8 @@
       in {
         "local" = unmountable;
         "safe" = unmountable;
-        "local/root" = filesystem "/";
-        "local/nix" = filesystem "/nix";
+        "local/root" = filesystem "/" // { options.mountpoint = "legacy"; };
+        "local/nix" = filesystem "/nix"  // { options.mountpoint = "legacy"; };
         "safe/home" = filesystem "/home";
       };
     };
