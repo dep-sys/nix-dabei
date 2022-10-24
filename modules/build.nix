@@ -12,7 +12,7 @@ with lib;
           SCRIPT_DIR=$( cd -- "$( dirname -- "''${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
           ''${SCRIPT_DIR}/kexec --load ''${SCRIPT_DIR}/${kernelFile} \
             --initrd=''${SCRIPT_DIR}/initrd \
-            --command-line "init=/bin/init ${kernelParams}"
+            --command-line "init=/bin/init ${kernelParams} $1"
           if systemctl --version >/dev/null 2>&1; then
             systemctl kexec
           else
@@ -33,7 +33,7 @@ with lib;
           exec ${pkgs.qemu_kvm}/bin/qemu-kvm -name nix-dabei \
             -m 2048 \
             -kernel ${kernel} -initrd ${initrd} \
-            -append "console=ttyS0 init=/bin/init ${kernelParams} ssh_host_key=''$ssh_host_key" \
+            -append "console=ttyS0 init=/bin/init ${kernelParams} ssh_host_key=''$ssh_host_key flake_url=github:phaer/test-flake#nixosConfigurations.web-01" \
             -no-reboot -nographic \
             -net nic,model=virtio \
             -net user,net=10.0.2.0/24,host=10.0.2.2,dns=10.0.2.3,hostfwd=tcp::2222-:22 \

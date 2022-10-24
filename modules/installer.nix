@@ -186,12 +186,32 @@ let cfg = config.nix-dabei; in
             '';
           };
 
+          get-flake-url = {
+            requires = [ "initrd-fs.target"];
+            after = [ "initrd-fs.target"];
+            unitConfig.DefaultDependencies = false;
+            serviceConfig.Type = "oneshot";
+            script = ''
+                for o in $(< /proc/cmdline); do
+                    case $o in
+                        flake_url=*)
+                            IFS== read -r -a param <<< "$o"
+                            flake_url="''${param[1]}"
+                            echo $flake_url > /run/flake_url
+                            echo "Using flake url from kernel parameter: $flake_url"
+                            ;;
+                    esac
+                done
+           '';
+          };
+
           format-disk = {
-            requires = [ "systemd-udevd.service" "initrd-fs.target"];
-            after = [ "systemd-udevd.service"];
+            requires = [ "systemd-udevd.service" "get-flake-url.service"];
+            after = [ "systemd-udevd.service" "get-flake-url.service"];
             requiredBy = [ "install-nixos.service" ];
             before = [ "install-nixos.service" ];
             unitConfig.DefaultDependencies = false;
+            unitConfig.ConditionPathExists = "/run/flake_url";
             serviceConfig.Type = "oneshot";
             script = ''
                 udevadm trigger --subsystem-match=block; udevadm settle
@@ -202,16 +222,19 @@ let cfg = config.nix-dabei; in
           };
 
          install-nixos = {
-            requires = ["network-online.target"];
-            after = ["network-online.target"];
+            requires = ["network-online.target" "get-flake-url.service"];
+            after = ["network-online.target" "get-flake-url.service"];
             requiredBy = [ "reboot-after-install.service" ];
             before = [ "reboot-after-install.service" ];
             unitConfig.DefaultDependencies = false;
+            unitConfig.ConditionPathExists = "/run/flake_url";
             serviceConfig.Type = "oneshot";
             script = ''
+                flake_url="$(cat /run/flake_url)"
+                echo "Installing $flake_url"
                 mkdir -p /mnt/etc
                 touch /mnt/etc/NIXOS
-                nix build  --store /mnt --profile /mnt/nix/var/nix/profiles/system github:phaer/test-flake#nixosConfigurations.web-01
+                nix build  --store /mnt --profile /mnt/nix/var/nix/profiles/system $flake_url
                 NIXOS_INSTALL_BOOTLOADER=1 nixos-enter --root /mnt -- /run/current-system/bin/switch-to-configuration boot
             '';
           };
