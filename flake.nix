@@ -27,13 +27,20 @@
             default = config.system.build.kexec;
           };
 
-      lib.makeSystem = modules: nixpkgs.lib.nixosSystem {
-        inherit system pkgs;
-        modules = (pkgs.lib.attrValues self.nixosModules) ++ modules;
-      };
+      lib.installerModules = [
+        self.nixosModules.disko
+        self.nixosModules.build
+        self.nixosModules.installer
+        ./configuration.nix
+      ];
 
+      lib.makeInstaller =
+        modules: nixpkgs.lib.nixosSystem {
+          inherit system pkgs;
+          modules = self.lib.installerModules ++ modules;
+        };
 
-      nixosConfigurations.default = self.lib.makeSystem [
+      nixosConfigurations.default = self.lib.makeInstaller [
           ./configuration.nix
       ];
 
@@ -41,6 +48,7 @@
         disko = { _module.args = { disko = disko.lib; }; };
         build = import ./modules/build.nix;
         installer = import ./modules/installer.nix;
+        instanceDefaults = import ./modules/instanceDefaults.nix;
       };
     };
 }

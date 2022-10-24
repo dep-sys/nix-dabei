@@ -1,11 +1,7 @@
 { pkgs, system, self }:
 let
   lib = pkgs.lib;
-  baseConfig =
-    [
-      ./configuration.nix
-    ] ++ lib.attrValues self.nixosModules;
-
+  baseConfig = self.lib.installerModules;
   mkTest = { name, nodes, testScript }:
     pkgs.nixosTest {
       inherit name nodes testScript;
