@@ -1,3 +1,5 @@
+NOTE: this branch pre-generates a disk images and uses a rescue system to write it to disk. While this works in principle, I've switched to another approach which uses a simple initrd to install nixos. Code is in the `kexec` branch, but isn't currently documented. I plan to do so before https://oceansprint.org/
+
 * nix-dabei
 contains tooling to install [[https://nixos.org][NixOS]] with [[https://github.com/openzfs/zfs][ZFS]] from a live Linux system.
 
