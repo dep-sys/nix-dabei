@@ -247,8 +247,8 @@ let cfg = config.nix-dabei; in
             unitConfig.DefaultDependencies = false;
             serviceConfig.Type = "oneshot";
             script = ''
-                umount /mnt/boot
-                zfs umount -a
+                set -o errexit
+                umount --recursive /mnt
                 zpool export rpool
                 reboot
             '';
