@@ -232,7 +232,7 @@ let cfg = config.nix-dabei; in
             script = ''
                 flake_url="$(cat /run/flake_url)"
                 echo "Installing $flake_url"
-                mkdir -p /mnt/etc
+                mkdir -p /mnt/{etc,tmp}
                 touch /mnt/etc/NIXOS
                 nix build  --store /mnt --profile /mnt/nix/var/nix/profiles/system $flake_url
                 NIXOS_INSTALL_BOOTLOADER=1 nixos-enter --root /mnt -- /run/current-system/bin/switch-to-configuration boot
