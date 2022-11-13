@@ -248,8 +248,9 @@ let cfg = config.nix-dabei; in
             serviceConfig.Type = "oneshot";
             script = ''
                 set -o errexit
-                umount --recursive /mnt
-                zpool export rpool
+                umount --verbose --recursive /mnt
+                zpool export -af
+                echo -e "Currently imported zpool(s)"; zpool list
                 reboot
             '';
           };
