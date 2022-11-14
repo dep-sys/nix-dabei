@@ -114,6 +114,7 @@ let cfg = config.nix-dabei; in
           nixos-enter = "${pkgs.nixos-install-tools}/bin/nixos-enter";
           unshare = "${pkgs.util-linux}/bin/unshare";
 
+          less = "${pkgs.less}/bin/less";
           ssh-keygen = "${config.programs.ssh.package}/bin/ssh-keygen";
           setsid = "${pkgs.util-linux}/bin/setsid";
 
