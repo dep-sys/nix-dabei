@@ -245,6 +245,7 @@ let cfg = config.nix-dabei; in
             requiredBy = [ "initrd.target" ];
             before = [ "initrd.target" ];
             unitConfig.DefaultDependencies = false;
+            unitConfig.ConditionPathExists = "/run/flake_url";
             serviceConfig.Type = "oneshot";
             script = ''
                 set -o errexit
