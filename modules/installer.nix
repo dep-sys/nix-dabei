@@ -96,6 +96,10 @@ let cfg = config.nix-dabei; in
             root:x:0:
             nogroup:x:65534:
         '';
+        "profile".text = ''
+            export SYSTEMD_COLORS=false
+            export SYSTEMD_PAGER="cat"
+        '';
       };
 
       boot.initrd.systemd = {
