@@ -105,6 +105,10 @@ let cfg = config.nix-dabei; in
         # Network is configured with kernelParams
         network.networks = { };
 
+        storePaths = [
+         "${pkgs.ncurses}/share/terminfo/v/vt102"
+        ];
+
         extraBin = {
           # nix & installer
           nix = "${pkgs.nixStatic}/bin/nix";
