@@ -29,7 +29,7 @@
       lib.installerModules = [
         self.nixosModules.disko
         self.nixosModules.build
-        self.nixosModules.installer
+        self.nixosModules.core
         ./configuration.nix
       ];
 
@@ -46,7 +46,7 @@
       nixosModules = {
         disko = { _module.args = { disko = disko.lib; }; };
         build = import ./modules/build.nix;
-        installer = import ./modules/installer.nix;
+        core = import ./modules/core.nix;
         instanceDefaults = import ./modules/instanceDefaults.nix;
       };
     };
