@@ -1,13 +1,12 @@
 # nix-dabei
 
-An **experimental** operating system generator heavily based on [not-os][], which in turn is based on [NixOS][nixos].
+An **experimental** operating system generator based on [NixOS][nixos].
 
-It generates a relatively small linux kernel, init ramdisk and squashfs image. Those can then be booted into memory in various ways and without touching any
-local disks.
-This is useful for a variety of setup and recovery tasks. For example to bootstrap NixOS on a remote machine via SSH only while still being able to use
-a nixos kernel, its filesystem support and userland features during installation.
+It generates a relatively small linux kernel and an initial ramdisk - all together ~40MB zstd-compressed at time of writing - that can either be booted conventionally or kexec'ed into from a running system. This can be useful for a variety of tasks, especially rescue systems and installers.
 
-While it's very early in development and major features such as zfs support are still missing, but it's at a stage where it might be interesting to NixOS developers.
+The current implementation focuses on the latter, and allows users to bootstrap NixOS on a remote machine via SSH only while still being able to use a nixos kernel, all its filesystem support and userland features during installation.
+
+It's in development but already somewhat useable to deploy NixOS remotely with ZFS via kexec. Documentation is still lacking though as tradition demands.
 
 There's a binary cache at [cachix: nix-dabei](https://app.cachix.org/cache/nix-dabei).
 
@@ -15,33 +14,37 @@ There's a binary cache at [cachix: nix-dabei](https://app.cachix.org/cache/nix-d
 
 I was looking for a generic way to install NixOS systems from [flakes][flakes] on (possibly) remote systems, while still being able to use alternative file systems like [zfs][]. We could install NixOS from i.e. Hetzners rescue system, but that means we are limited to features supported by Hetzners rescue kernel. While they do support zfs specifically, the installer compiles the module from source in the rescue system. This takes a lot of time and becomes annoying quickly if one tries to deploy multiple machines. Additionally, a mismatch between zfs versions and features between Hetzners kernel and NixOS is likely.
 
-Luckily, `kexec`uting a NixOS kernel and init ramdisk from a rescue system works fine. So we can use custom kernels and userland tools, including modern nix with flakes enabled, to install NixOS.
+Luckily, `kexec`uting a NixOS kernel and init ramdisk from a debian image or rescue system works fine. So we can use custom kernels and userland tools, including modern nix with flakes enabled, to install NixOS.
 
 It **should** work for other cloud providers and environments, such as rasperrrypi as well, but that's not really tested yet. Contributions welcome!
 :tada:
 
 # Usage / What can I do with? 
 
-## Run virtual machine
+## Run the initrd in a virtual machine
+
+...with a mounted empty disk, which is useful for testing and development:
 
 ```sh
-nix build -L .#runvm && ./result
+nix run -L .#installerVM
 ```
-
 (You can kill it by entering `Ctrl-a x`)
 
-## Check toplevel packages 
 
-List of contents, sorted by size
-
-``` sh
-nix build -L .#toplevel && du -h $(nix-store -qR result) --max=0 -BM|sort -n
-```
-
-Interactively browse contents
+## Run it on a real host
 
 ``` sh
-nix run nixpkgs#nix-tree  .#toplevel
+# build a kexec bundle
+kexec="$(nix build .#kexec --json| jq -r '.[].outputs.out')"
+
+# copy it to your $TARGET_SERVER
+rsync \
+    -Lavz \
+    --info=progress2 \
+    "${kexec}/" \
+    root@$TARGET_SERVER:
+# use the bundled script to switch into the initrd 
+ssh root@$TARGET_SERVER "./kexec-boot flake_url=github:phaer/test-flake#nixosConfigurations.web-01"
 ```
 
 
@@ -49,28 +52,22 @@ nix run nixpkgs#nix-tree  .#toplevel
 
 ## Compared to `system.build.netbootRamdisk`
 
-My [first experiment][nixos-zfs-installer] used `system.build.netbootRamdisk` from nixpkgs. This worked well enough and I learned *a lot* about nix, but the resulting images ended up really large which made uploads to new systems tedious. As they are loaded into memory, bigger images also makes it impossible to run them on systems with little memory. One could surely further reduce the size of that experiment, but `not-os` allowed tme to iterate much quicker. 
+My [first experiment][nixos-zfs-installer] used `system.build.netbootRamdisk` from nixpkgs. This worked well enough and I learned *a lot* about nix, but the resulting images ended up really large which made uploads to new systems tedious. As they are loaded into memory, bigger images also makes it impossible to run them on systems with little memory. 
 
 ## Compared to [not-os][]
 
-My [second iteration][nix-dabei-not-os] was build upon `not-os`, which is a fantastic project that did the hard work of extracting a minimal set of nixos modules and further reducing its size by replacing systemd with runit,
+My [second iteration][nix-dabei-not-os] was build upon `not-os`, which is a fantastic project that did the hard work of extracting a minimal set of nixos modules and further reducing its size by replacing systemd with runit.
 
-This worked well and the resulting images ended up to be smaller than current iterations of `nix-dabei`. But then [systemd-in-stage1][] landed in nixos, simplifying the boot process and tempting me to see whether I could build
-something similar as `not-os` while staying closer to upstream NixOS.
-
-In the end, `nix-dabei` does not support raspberrypi yet and produces bigger images, but uses systemd and a is packaged as a flake.
+This worked well enough, but then [systemd-in-stage1][] landed in nixos, simplifying the boot process and tempting me to see whether I could build something similar as `not-os` while staying closer to upstream NixOS.
 
 ## Compared to [nix-infect][]
 
 `nix-infect` is another great project which allows users to install NixOS on remote systems. It's implemented as a shell script which bootstraps nix and installs nixos on an ext4 file system.
-While this works well for a lot of use-cases, `kexec`uting, like `nix-dabei` does, allows us to partition filesystems with the same kernel and tools as in the new NixOS system to be installed. 
+While this works as long as you are happy with ext4, `kexec`uting, like `nix-dabei` does, allows us to partition filesystems with the same kernel and tools as in the new NixOS system to be installed. 
 
-* allows access to custom file system setups and other kernel features during installation.
-* supports far less cloud providers than `nix-infect`.
+## Compared to (official) ISO images
 
-## The official ISO images
-
-
+Official ISO images are great for interactive installations, but don't enable SSH access by default. You can build custom ones for your setup but depending on your provider getting those to boot can be somewhat more involved than `kexec`.
 
 
 [flakes]: https://nixos.wiki/wiki/Flakes
@@ -83,3 +80,23 @@ While this works well for a lot of use-cases, `kexec`uting, like `nix-dabei` doe
 [nix-dabei-notos]: https://github.com/dep-sys/nix-dabei/tree/not-os
 [hetzner.cloud]: https://hetzner.cloud
 [systemd-in-stage1]: https://github.com/NixOS/nixpkgs/projects/51
+
+## Minimal NixoS
+https://github.com/NixOS/nixpkgs/issues/21315
+https://github.com/vikanezrimaya/nixos-super-minimal
+https://github.com/NixOS/nixpkgs/pull/104828
+
+# TODO
+
+* Move disko to runtime or replace it,
+  to allow passing things like disk encryption key and the device from a pre-built image.
+  
+* document inputs
+** ssh host key (kernel param or auto-generated)
+** flake_url (kernel param)
+** ...ips, disk encryption key? disks + partition schemes
+  
+* Allow passing ssh_authorized_key via cmdline
+* Expose instance module
+  optionally with instance-data for hetzner
+* complete readme
