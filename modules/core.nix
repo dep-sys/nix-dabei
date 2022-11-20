@@ -158,8 +158,6 @@ let cfg = config.nix-dabei; in
               # partitioning
               parted = "${pkgs.parted}/bin/parted";
               jq = "${pkgs.jq}/bin/jq";
-              tsp-create = pkgs.writeScript "tsp-create" (disko.create cfg.diskLayout);
-              tsp-mount = pkgs.writeScript "tsp-mount" (disko.mount cfg.diskLayout);
 
               get-kernel-param = pkgs.writeScript "get-kernel-param" ''
                 for o in $(< /proc/cmdline); do
