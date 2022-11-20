@@ -29,11 +29,12 @@ with lib;
             ];
         system.build.installerVM = pkgs.writeShellScriptBin "installer-vm" ''
           test -f disk.img || ${pkgs.qemu_kvm}/bin/qemu-img create -f qcow2 disk.img 10G
-          ssh_host_key="''$(cat ${../fixtures/ssh_host_ed25519_key} | base64 -w0)"
+          ssh_host_key="$(cat ${../fixtures/ssh_host_ed25519_key} | base64 -w0)"
+          ssh_authorized_key="$(cat ${../fixtures/id_ed25519.pub} | base64 -w0)"
           exec ${pkgs.qemu_kvm}/bin/qemu-kvm -name nix-dabei \
             -m 2048 \
             -kernel ${kernel} -initrd ${initrd} \
-            -append "console=ttyS0 init=/bin/init ${kernelParams} ssh_host_key=''$ssh_host_key flake_url=github:phaer/test-flake#nixosConfigurations.web-01" \
+            -append "console=ttyS0 init=/bin/init ${kernelParams} ssh_host_key=$ssh_host_key ssh_authorized_key=$ssh_authorized_key" \
             -no-reboot -nographic \
             -net nic,model=virtio \
             -net user,net=10.0.2.0/24,host=10.0.2.2,dns=10.0.2.3,hostfwd=tcp::2222-:22 \
