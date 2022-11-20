@@ -30,7 +30,6 @@
         self.nixosModules.disko
         self.nixosModules.build
         self.nixosModules.core
-        ./configuration.nix
       ];
 
       lib.makeInstaller =
@@ -40,7 +39,8 @@
         };
 
       nixosConfigurations.default = self.lib.makeInstaller [
-          ./configuration.nix
+        "${nixpkgs}/nixos/modules/profiles/qemu-guest.nix"
+
       ];
 
       nixosModules = {
