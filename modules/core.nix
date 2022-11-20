@@ -1,4 +1,4 @@
-{ config, pkgs, lib, disko, ... }:
+{ config, pkgs, lib, ... }:
 let cfg = config.nix-dabei; in
 {
   options.nix-dabei = with lib; {
@@ -12,11 +12,23 @@ let cfg = config.nix-dabei; in
       type = types.bool;
       default = true;
     };
-    ssh.stay-in-stage-1 = mkOption {
+    stay-in-stage-1 = mkOption {
       description = "disable switching to stage-2 so sshd keeps running until reboot";
       type = types.bool;
       default = true;
     };
+    remount-root = mkOption {
+      description = "remount / on tmpfs to allow pivot_root syscalls";
+      type = types.bool;
+      default = true;
+    };
+
+    auto-install.enable = mkOption {
+      description = "enable auto installer, see README";
+      type = types.bool;
+      default = true;
+    };
+
     diskDevice = mkOption {
       description = "disk to NUKE";
       type = types.str;
@@ -216,7 +228,30 @@ let cfg = config.nix-dabei; in
       };
     })
 
-    (lib.mkIf cfg.ssh.stay-in-stage-1 {
+    (lib.mkIf cfg.remount-root {
+      # move everything in / to /sysroot and switch-root into
+      # it. This runs a few things twice and wastes some memory
+      # but is necessary for nix --store flag as pivot_root does
+      # not work on rootfs.
+      boot.initrd.systemd.services.remount-root = {
+        requires = [ "systemd-udevd.service" "initrd-root-fs.target"];
+        after = [ "systemd-udevd.service"];
+        requiredBy = [ "initrd-fs.target" ];
+        before = [ "initrd-fs.target" ];
+
+        unitConfig.DefaultDependencies = false;
+        serviceConfig.Type = "oneshot";
+        script = ''
+          root_fs_type="$(mount|awk '$3 == "/" { print $1 }')"
+          if [ "$root_fs_type" != "tmpfs" ]; then
+              cp -R /bin /etc  /init  /lib  /nix  /root  /sbin  /var /sysroot
+              systemctl --no-block switch-root /sysroot /bin/init
+          fi
+      '';
+      };
+    })
+
+    (lib.mkIf cfg.stay-in-stage-1 {
       boot.initrd.systemd.services = {
         initrd-switch-root.enable = false;
         initrd-cleanup.enable = false;
