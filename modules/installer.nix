@@ -249,7 +249,7 @@ let cfg = config.nix-dabei; in
             script = ''
                 set -o errexit
                 umount --verbose --recursive /mnt
-                zpool export -af
+                zpool export -a
                 echo -e "Currently imported zpool(s)"; zpool list
                 reboot
             '';
