@@ -15,7 +15,6 @@
     in
     {
       packages.${system} =
-        with pkgs;
         let
          config = self.nixosConfigurations.default.config;
          tests = import ./tests.nix { inherit pkgs system self; };

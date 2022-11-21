@@ -105,6 +105,16 @@ let cfg = config.nix-dabei; in
         # Network is configured with kernelParams
         network.networks = { };
 
+        # This is the upstream expression, just with bashInteractive instead of bash.
+        initrdBin = let
+          systemd = config.boot.initrd.systemd.package;
+        in lib.mkForce ([pkgs.bashInteractive pkgs.coreutils systemd.kmod systemd] ++ config.system.fsPackages);
+
+        storePaths = [
+         "${pkgs.ncurses}/share/terminfo/v/vt102"
+         "${pkgs.bash}"
+        ];
+
         extraBin = {
           # nix & installer
           nix = "${pkgs.nixStatic}/bin/nix";
@@ -221,7 +231,7 @@ let cfg = config.nix-dabei; in
             '';
           };
 
-         install-nixos = {
+          install-nixos = {
             requires = ["network-online.target" "get-flake-url.service"];
             after = ["network-online.target" "get-flake-url.service"];
             requiredBy = [ "reboot-after-install.service" ];
@@ -245,6 +255,7 @@ let cfg = config.nix-dabei; in
             requiredBy = [ "initrd.target" ];
             before = [ "initrd.target" ];
             unitConfig.DefaultDependencies = false;
+            unitConfig.ConditionPathExists = "/run/flake_url";
             serviceConfig.Type = "oneshot";
             script = ''
                 set -o errexit
@@ -264,10 +275,6 @@ let cfg = config.nix-dabei; in
           #    /bin/setsid /bin/sh -c 'exec /bin/sh <> /dev/console >&0 2>&1'
           #  '';
           #};
-
-
-
-
         };
       };
     }
