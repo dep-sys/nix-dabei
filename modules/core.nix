@@ -124,6 +124,9 @@ let cfg = config.nix-dabei; in
               root:x:0:
               nogroup:x:65534:
             '';
+            "profile".text = ''
+              export TERM=vt102
+            '';
           };
 
           systemd = {
