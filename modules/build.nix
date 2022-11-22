@@ -12,7 +12,7 @@ with lib;
           SCRIPT_DIR=$( cd -- "$( dirname -- "''${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
           ''${SCRIPT_DIR}/kexec --load ''${SCRIPT_DIR}/${kernelFile} \
             --initrd=''${SCRIPT_DIR}/initrd \
-            --command-line "init=/bin/init ${kernelParams} $1"
+            --command-line "init=/bin/init ${kernelParams} $*"
           if systemctl --version >/dev/null 2>&1; then
             systemctl kexec
           else
