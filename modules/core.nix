@@ -85,7 +85,6 @@ let cfg = config.nix-dabei; in
       boot = {
         loader.grub.enable = false;
         kernelParams = [
-          "ip=dhcp"
           "systemd.show_status=true"
           "systemd.log_level=info"
           "systemd.log_target=console"
