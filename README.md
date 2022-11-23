@@ -30,6 +30,14 @@ nix run -L .#installerVM
 ```
 (You can kill it by entering `Ctrl-a x`)
 
+The VM can be accessed via SSH:
+
+```sh
+# Required once; git doesn'tt track file permissions but `ssh` enforces secure key file permissions.
+chmod go-rwx fixtures/id_*    
+
+ssh -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null -p 2222 -i fixtures/id_ed25519 root@localhost 
+```
 
 ## Run it on a real host
 
