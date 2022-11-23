@@ -16,7 +16,7 @@ with lib;
           if systemctl --version >/dev/null 2>&1; then
             systemctl kexec
           else
-            ''${SCRIPT_DIR}/kexec -e
+            ''${SCRIPT_DIR}/kexec --exec
           fi
        '';
     in {
