@@ -138,7 +138,7 @@ let cfg = config.nix-dabei; in
             in lib.mkForce ([pkgs.bashInteractive pkgs.coreutils systemd.kmod systemd] ++ config.system.fsPackages);
 
             storePaths = [
-              "${pkgs.ncurses}/share/terminfo/v/vt102"
+              "${pkgs.ncurses}/share/terminfo/"
               "${pkgs.bash}"
             ];
 
