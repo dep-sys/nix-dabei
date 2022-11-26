@@ -26,12 +26,6 @@
             default = config.system.build.kexec;
           };
 
-      lib.installerModules = [
-        self.nixosModules.build
-        self.nixosModules.core
-        self.nixosModules.auto-installer
-      ];
-
       lib.diskLayouts = {
         zfs-simple = import ./disk-layouts/zfs-simple.nix;
       };
@@ -39,7 +33,7 @@
       lib.makeInstaller =
         modules: nixpkgs.lib.nixosSystem {
           inherit system pkgs;
-          modules = self.lib.installerModules ++ modules;
+          modules = (builtins.attrValues self.nixosModules) ++ modules;
         };
       nixosConfigurations.default = self.lib.makeInstaller [
         "${nixpkgs}/nixos/modules/profiles/qemu-guest.nix"
@@ -50,7 +44,6 @@
         build = import ./modules/build.nix;
         core = import ./modules/core.nix;
         auto-installer = import ./modules/auto-installer.nix;
-        instanceDefaults = import ./modules/instanceDefaults.nix;
       };
     };
 }

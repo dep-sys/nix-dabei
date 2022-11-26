@@ -17,7 +17,7 @@
     sshKeys = [
       "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDLopgIL2JS/XtosC8K+qQ1ZwkOe1gFi8w2i1cd13UehWwkxeguU6r26VpcGn8gfh6lVbxf22Z9T2Le8loYAhxANaPghvAOqYQH/PJPRztdimhkj2h7SNjP1/cuwlQYuxr/zEy43j0kK0flieKWirzQwH4kNXWrscHgerHOMVuQtTJ4Ryq4GIIxSg17VVTA89tcywGCL+3Nk4URe5x92fb8T2ZEk8T9p1eSUL+E72m7W7vjExpx1PLHgfSUYIkSGBr8bSWf3O1PW6EuOgwBGidOME4Y7xNgWxSB/vgyHx3/3q5ThH0b8Gb3qsWdN22ZILRAeui2VhtdUZeuf2JYYh8L"
     ];
-    bootDisk = "/dev/sda";
+    bootDisk = "/dev/vda";
   in {
     apps.${system} = {
       colmena = colmena.apps.${system}.default;
@@ -31,7 +31,7 @@
 
       web-01 = { name, nodes, pkgs, lib, config, modulesPath, ... }: {
         imports = [
-          nix-dabei.nixosModules.instanceDefaults
+          "${modulesPath}/profiles/qemu-guest.nix"
           nix-dabei.inputs.disko.nixosModules.disko
         ];
 
@@ -44,8 +44,14 @@
           };
 
           disko.devices = nix-dabei.lib.diskLayouts.zfs-simple { diskDevice = bootDisk; };
-
-          boot.loader.grub.devices = [ bootDisk ];
+          boot.zfs = {
+            # FIXME check if disko supports partlabels, otherwise make this configurable via diskLayout
+            devNodes = "${bootDisk}2";
+          };
+          boot.loader.grub = {
+            enable = true;
+            devices = [ bootDisk ];
+          };
           time.timeZone = "UTC";
           system.stateVersion = "22.11";
           users.users.root.openssh.authorizedKeys.keys = sshKeys;
