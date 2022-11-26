@@ -23,14 +23,14 @@
       kexec = (nix-dabei.lib.makeInstaller {
         inherit system pkgs;
         module = [
-        ({ config, modulesPath, ... }: {
-          imports = [
-            "${modulesPath}/profiles/qemu-guest.nix"
-          ];
-          config = {
-           users.users.root.openssh.authorizedKeys.keys = sshKeys;
-          };
-        })
+          ({ config, modulesPath, ... }: {
+            imports = [
+              "${modulesPath}/profiles/qemu-guest.nix"
+            ];
+            config = {
+              users.users.root.openssh.authorizedKeys.keys = sshKeys;
+            };
+          })
         ];
       }).config.system.build.kexec;
     };
@@ -46,6 +46,7 @@
       };
 
       web-01 = { name, nodes, pkgs, lib, config, modulesPath, ... }: {
+        imports = [
           nix-dabei.nixosModules.instanceDefaults
         ];
 
@@ -55,7 +56,7 @@
             targetPort = 22;
             targetUser = "root";
             buildOnTarget = true;
-         };
+          };
 
           boot.loader.grub.devices = [ bootDisk ];
           time.timeZone = "UTC";
