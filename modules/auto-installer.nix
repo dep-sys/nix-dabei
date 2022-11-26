@@ -9,10 +9,12 @@ lib.mkIf config.nix-dabei.auto-install.enable {
       unitConfig.DefaultDependencies = false;
       serviceConfig.Type = "oneshot";
       script = ''
+          set -euo pipefail
+
           flake_url="$(get-kernel-param "flake_url")"
           if [ -n "$flake_url" ]
           then
-            echo "Using flake url from kernel parameter: $param"
+            echo "Using flake url from kernel parameter: $flake_url"
           else
             echo "No flake url defined for auto-installer"
             exit 1
