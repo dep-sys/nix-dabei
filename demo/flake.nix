@@ -44,10 +44,6 @@
           };
 
           disko.devices = nix-dabei.lib.diskLayouts.zfs-simple { diskDevice = bootDisk; };
-          boot.zfs = {
-            # FIXME check if disko supports partlabels, otherwise make this configurable via diskLayout
-            devNodes = "${bootDisk}2";
-          };
           boot.loader.grub = {
             enable = true;
             devices = [ bootDisk ];
