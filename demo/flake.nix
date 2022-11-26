@@ -19,20 +19,6 @@
     ];
     bootDisk = "/dev/sda";
   in {
-    packages.${system} = {
-      kexec = (nix-dabei.lib.makeInstaller
-         [
-          ({ config, modulesPath, ... }: {
-            imports = [
-              "${modulesPath}/profiles/qemu-guest.nix"
-            ];
-            config = {
-              users.users.root.openssh.authorizedKeys.keys = sshKeys;
-            };
-          })
-        ]).config.system.build.kexec;
-    };
-
     apps.${system} = {
       colmena = colmena.apps.${system}.default;
     };
