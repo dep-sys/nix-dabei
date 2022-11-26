@@ -32,7 +32,7 @@
       ];
 
       lib.diskLayouts = {
-        zfs-simple = ./disk-layouts/zfs-simple.nix;
+        zfs-simple = import ./disk-layouts/zfs-simple.nix;
       };
 
       lib.makeInstaller = {system, pkgs, modules}:
