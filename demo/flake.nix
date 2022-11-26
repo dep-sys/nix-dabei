@@ -37,7 +37,7 @@
       colmena = colmena.apps.${system}.default;
     };
 
-    nixosConfigurations = self.colmenaHive.toplevel;
+    nixosConfigurations = self.colmenaHive.nodes;
     colmenaHive = colmena.lib.makeHive {
       meta = {
         nixpkgs = pkgs;
