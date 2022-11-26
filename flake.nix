@@ -35,16 +35,15 @@
         zfs-simple = import ./disk-layouts/zfs-simple.nix;
       };
 
-      lib.makeInstaller = {system, pkgs, modules}:
-        nixpkgs.lib.nixosSystem {
+      lib.makeInstaller =
+        modules: nixpkgs.lib.nixosSystem {
           inherit system pkgs;
           modules = self.lib.installerModules ++ modules;
         };
+      nixosConfigurations.default = self.lib.makeInstaller [
+        "${nixpkgs}/nixos/modules/profiles/qemu-guest.nix"
 
-      nixosConfigurations.default = self.lib.makeInstaller {
-        inherit system pkgs;
-        modules = [ "${nixpkgs}/nixos/modules/profiles/qemu-guest.nix" ];
-      };
+      ];
 
       nixosModules = {
         build = import ./modules/build.nix;
