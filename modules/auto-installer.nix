@@ -1,4 +1,4 @@
-{ config, pkgs, lib, disko, ... }:
+{ config, pkgs, lib, ... }:
     lib.mkIf config.nix-dabei.auto-install.enable {
   boot.initrd.systemd.services = {
     get-flake-url = {
