@@ -2,9 +2,8 @@
 lib.mkIf config.nix-dabei.auto-install.enable {
   boot.initrd.systemd.services = {
     auto-installer = {
-      # FIXME re-activate "network-online.target" after fixing that.
-      requires = [ "initrd-fs.target" "systemd-udevd.service"]; # "network-online.target"
-      after = [ "initrd-fs.target" "systemd-udevd.service"]; # "network-online.target"
+      requires = [ "initrd-fs.target" "systemd-udevd.service" "network-online.target"];
+      after = [ "initrd-fs.target" "systemd-udevd.service" "network-online.target"];
       requiredBy = [ "initrd.target" ];
       before = [ "initrd.target" ];
       unitConfig.DefaultDependencies = false;
