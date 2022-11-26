@@ -46,6 +46,7 @@
       web-01 = { name, nodes, pkgs, lib, config, modulesPath, ... }: {
         imports = [
           nix-dabei.nixosModules.instanceDefaults
+          nix-dabei.inputs.disko.nixosModules.disko
         ];
 
         config = {
@@ -55,6 +56,8 @@
             targetUser = "root";
             buildOnTarget = true;
           };
+
+          disko.devices = nix-dabei.lib.diskLayouts.zfs-simple { diskDevice = bootDisk; };
 
           boot.loader.grub.devices = [ bootDisk ];
           time.timeZone = "UTC";
