@@ -1,7 +1,7 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nix-dabei.url = "github:dep-sys/nix-dabei/";
+    nix-dabei.url = "github:dep-sys/nix-dabei/auto-installer";
     colmena.url = "github:zhaofengli/colmena/main";
   };
 
@@ -13,40 +13,26 @@
 
   outputs = { self, nixpkgs, nix-dabei, colmena, ... }: let
     system = "x86_64-linux";
-    pkgs = import nixpkgs { inherit system; overlays = [self.overlays.default]; };
+    pkgs = import nixpkgs { inherit system; };
     sshKeys = [
       "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDLopgIL2JS/XtosC8K+qQ1ZwkOe1gFi8w2i1cd13UehWwkxeguU6r26VpcGn8gfh6lVbxf22Z9T2Le8loYAhxANaPghvAOqYQH/PJPRztdimhkj2h7SNjP1/cuwlQYuxr/zEy43j0kK0flieKWirzQwH4kNXWrscHgerHOMVuQtTJ4Ryq4GIIxSg17VVTA89tcywGCL+3Nk4URe5x92fb8T2ZEk8T9p1eSUL+E72m7W7vjExpx1PLHgfSUYIkSGBr8bSWf3O1PW6EuOgwBGidOME4Y7xNgWxSB/vgyHx3/3q5ThH0b8Gb3qsWdN22ZILRAeui2VhtdUZeuf2JYYh8L"
     ];
     bootDisk = "/dev/sda";
   in {
-    packages.${system} = {
-      kexec = (nix-dabei.lib.makeInstaller {
-        inherit system pkgs;
-        module = [
-        ({ config, modulesPath, ... }: {
-          imports = [
-            "${modulesPath}/profiles/qemu-guest.nix"
-          ];
-          config = {
-           users.users.root.openssh.authorizedKeys.keys = sshKeys;
-          };
-        })
-        ];
-      }).config.system.build.kexec;
-    };
-
     apps.${system} = {
       colmena = colmena.apps.${system}.default;
     };
 
-    nixosConfigurations = self.colmenaHive.toplevel;
+    nixosConfigurations = self.colmenaHive.nodes;
     colmenaHive = colmena.lib.makeHive {
       meta = {
         nixpkgs = pkgs;
       };
 
       web-01 = { name, nodes, pkgs, lib, config, modulesPath, ... }: {
-          nix-dabei.nixosModules.instanceDefaults
+        imports = [
+          "${modulesPath}/profiles/qemu-guest.nix"
+          nix-dabei.inputs.disko.nixosModules.disko
         ];
 
         config = {
@@ -55,9 +41,20 @@
             targetPort = 22;
             targetUser = "root";
             buildOnTarget = true;
-         };
+          };
 
-          boot.loader.grub.devices = [ bootDisk ];
+          disko.devices = nix-dabei.lib.diskLayouts.zfs-simple { diskDevice = bootDisk; };
+          boot.loader.grub = {
+            enable = true;
+            devices = [ bootDisk ];
+          };
+
+          services.openssh = {
+            enable = true;
+            passwordAuthentication = lib.mkForce false;
+            permitRootLogin = lib.mkForce "without-password";
+          };
+
           time.timeZone = "UTC";
           system.stateVersion = "22.11";
           users.users.root.openssh.authorizedKeys.keys = sshKeys;

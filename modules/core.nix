@@ -92,13 +92,9 @@ let cfg = config.nix-dabei; in
         ];
 
         initrd = {
+          kernelModules = [ "virtio_pci" "virtio_scsi" "ata_piix" "sd_mod" "sr_mod" "ahci" "nvme" ];
           network = {
             enable = true;
-            ssh = {
-              enable = true;
-              authorizedKeys = config.users.users.root.openssh.authorizedKeys.keys;
-              port = 22;
-            };
           };
           # Besides the file systems used for installation of our nixos
           # instances, we might need additional ones for kexec to work.
@@ -129,6 +125,7 @@ let cfg = config.nix-dabei; in
             enable = true;
             emergencyAccess = true;
 
+            network.wait-online.anyInterface = true;
             # Network is configured with kernelParams
             network.networks = { };
 
@@ -179,15 +176,21 @@ let cfg = config.nix-dabei; in
     }
 
     (lib.mkIf cfg.ssh.enable {
-      boot.initrd.systemd.services = {
-        setup-ssh-authorized-keys = {
-          requires = ["initrd-fs.target"];
-          after = ["initrd-fs.target"];
-          requiredBy = [ "sshd.service" ];
-          before = [ "sshd.service" ];
-          unitConfig.DefaultDependencies = false;
-          serviceConfig.Type = "oneshot";
-          script = ''
+      boot.initrd = {
+        network.ssh = {
+          enable = true;
+          authorizedKeys = config.users.users.root.openssh.authorizedKeys.keys;
+          port = 22;
+        };
+        systemd.services = {
+          setup-ssh-authorized-keys = {
+            requires = ["initrd-fs.target"];
+            after = ["initrd-fs.target"];
+            requiredBy = [ "sshd.service" ];
+            before = [ "sshd.service" ];
+            unitConfig.DefaultDependencies = false;
+            serviceConfig.Type = "oneshot";
+            script = ''
               mkdir -p /etc/ssh/authorized_keys.d
               param="$(get-kernel-param "ssh_authorized_key")"
               if [ -n "$param" ]; then
@@ -197,16 +200,16 @@ let cfg = config.nix-dabei; in
                  echo "Using ssh authorized key from kernel parameter"
               fi
          '';
-        };
+          };
 
-        generate-ssh-host-key = {
-          requires = ["initrd-fs.target"];
-          after = ["initrd-fs.target"];
-          requiredBy = [ "sshd.service" ];
-          before = [ "sshd.service" ];
-          unitConfig.DefaultDependencies = false;
-          serviceConfig.Type = "oneshot";
-          script = ''
+          generate-ssh-host-key = {
+            requires = ["initrd-fs.target"];
+            after = ["initrd-fs.target"];
+            requiredBy = [ "sshd.service" ];
+            before = [ "sshd.service" ];
+            unitConfig.DefaultDependencies = false;
+            serviceConfig.Type = "oneshot";
+            script = ''
               mkdir -p /etc/ssh/
 
               param="$(get-kernel-param "ssh_host_key")"
@@ -221,6 +224,7 @@ let cfg = config.nix-dabei; in
                  echo "Generated new ssh host key"
               fi
           '';
+          };
         };
       };
     })
