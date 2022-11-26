@@ -31,10 +31,11 @@ with lib;
           test -f disk.img || ${pkgs.qemu_kvm}/bin/qemu-img create -f qcow2 disk.img 10G
           ssh_host_key="$(cat ${../fixtures/ssh_host_ed25519_key} | base64 -w0)"
           ssh_authorized_key="$(cat ${../fixtures/id_ed25519.pub} | base64 -w0)"
+          flake_url="github:dep-sys/nix-dabei/auto-installer?dir=demo#nixosConfigurations.web-01"
           exec ${pkgs.qemu_kvm}/bin/qemu-kvm -name nix-dabei \
             -m 2048 \
             -kernel ${kernel} -initrd ${initrd} \
-            -append "console=ttyS0 init=/bin/init ${kernelParams} ssh_host_key=$ssh_host_key ssh_authorized_key=$ssh_authorized_key flake_url=github:dep-sys/nix-dabei/auto-installer?dir=demo" \
+            -append "console=ttyS0 init=/bin/init ${kernelParams} ssh_host_key=$ssh_host_key ssh_authorized_key=$ssh_authorized_key flake_url=$flake_url" \
             -no-reboot -nographic \
             -net nic,model=virtio \
             -net user,net=10.0.2.0/24,host=10.0.2.2,dns=10.0.2.3,hostfwd=tcp::2222-:22 \
