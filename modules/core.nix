@@ -129,6 +129,7 @@ let cfg = config.nix-dabei; in
             enable = true;
             emergencyAccess = true;
 
+            network.wait-online.anyInterface = true;
             # Network is configured with kernelParams
             network.networks = { };
 
