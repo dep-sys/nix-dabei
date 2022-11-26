@@ -37,6 +37,10 @@
           modules = self.lib.installerModules ++ modules;
         };
 
+      lib.diskLayouts = {
+        zfs-simple = ./disk-layouts/zfs-simple.nix;
+      };
+
       nixosConfigurations.default = self.lib.makeInstaller [
         "${nixpkgs}/nixos/modules/profiles/qemu-guest.nix"
 
