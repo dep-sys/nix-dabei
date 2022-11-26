@@ -23,7 +23,9 @@
       zfs = {
         forceImportRoot = true; # kernelParms = ["zfs_force=1"];
         # can be a single device, effectively the arg for zpool import -d
-        devNodes = "/dev/disk/by-partlabel/zfs";
+        #devNodes = "/dev/disk/by-partlabel/zfs";
+        # FIXME check if disko supports partlabels, otherwise make this configurable via diskLayout
+        devNodes = "/dev/sda2";
       };
       initrd = {
         systemd = {
@@ -33,23 +35,24 @@
       };
     };
 
-    fileSystems."/boot" =
-      {
-        device = "/dev/disk/by-partlabel/ESP";
-        fsType = "vfat";
-        neededForBoot = true;
-      };
-    fileSystems."/" =
-      {
-        device = "rpool/local/root";
-        fsType = "zfs";
-        neededForBoot = true;
-      };
-    fileSystems."/nix" =
-      {
-        device = "rpool/local/nix";
-        fsType = "zfs";
-        neededForBoot = true;
-      };
+    # FIXME: probably obsolete since we are using diskos enableConfig option now.
+    #fileSystems."/boot" =
+    #  {
+    #    device = "/dev/disk/by-partlabel/ESP";
+    #    fsType = "vfat";
+    #    neededForBoot = true;
+    #  };
+    #fileSystems."/" =
+    #  {
+    #    device = "rpool/local/root";
+    #    fsType = "zfs";
+    #    neededForBoot = true;
+    #  };
+    #fileSystems."/nix" =
+    #  {
+    #    device = "rpool/local/nix";
+    #    fsType = "zfs";
+    #    neededForBoot = true;
+    #  };
   };
 }
