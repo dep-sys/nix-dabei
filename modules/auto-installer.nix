@@ -59,8 +59,10 @@
       serviceConfig.Type = "oneshot";
       script = ''
           set -o errexit
-          umount --recursive /mnt
-          zpool export rpool
+          umount --verbose --recursive /mnt
+          echo -e "imported zpool(s) before export"; zpool list
+          zpool export -a
+          echo -e "imported zpool(s) after export"; zpool list
           reboot
       '';
     };
