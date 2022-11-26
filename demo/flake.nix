@@ -48,6 +48,13 @@
             enable = true;
             devices = [ bootDisk ];
           };
+
+          services.openssh = {
+            enable = true;
+            passwordAuthentication = lib.mkForce false;
+            permitRootLogin = lib.mkForce "without-password";
+          };
+
           time.timeZone = "UTC";
           system.stateVersion = "22.11";
           users.users.root.openssh.authorizedKeys.keys = sshKeys;
