@@ -20,9 +20,8 @@
     bootDisk = "/dev/sda";
   in {
     packages.${system} = {
-      kexec = (nix-dabei.lib.makeInstaller {
-        inherit system pkgs;
-        modules = [
+      kexec = (nix-dabei.lib.makeInstaller
+         [
           ({ config, modulesPath, ... }: {
             imports = [
               "${modulesPath}/profiles/qemu-guest.nix"
@@ -31,8 +30,7 @@
               users.users.root.openssh.authorizedKeys.keys = sshKeys;
             };
           })
-        ];
-      }).config.system.build.kexec;
+        ]).config.system.build.kexec;
     };
 
     apps.${system} = {
