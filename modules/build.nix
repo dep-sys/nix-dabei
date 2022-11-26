@@ -34,7 +34,7 @@ with lib;
           exec ${pkgs.qemu_kvm}/bin/qemu-kvm -name nix-dabei \
             -m 2048 \
             -kernel ${kernel} -initrd ${initrd} \
-            -append "console=ttyS0 init=/bin/init ${kernelParams} ssh_host_key=$ssh_host_key ssh_authorized_key=$ssh_authorized_key" \
+            -append "console=ttyS0 init=/bin/init ${kernelParams} ssh_host_key=$ssh_host_key ssh_authorized_key=$ssh_authorized_key flake_url=github:dep-sys/nix-dabei/auto-installer?dir=demo" \
             -no-reboot -nographic \
             -net nic,model=virtio \
             -net user,net=10.0.2.0/24,host=10.0.2.2,dns=10.0.2.3,hostfwd=tcp::2222-:22 \

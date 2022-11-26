@@ -1,63 +1,35 @@
 { config, pkgs, lib, ... }:
-    lib.mkIf config.nix-dabei.auto-install.enable {
+lib.mkIf config.nix-dabei.auto-install.enable {
   boot.initrd.systemd.services = {
-    get-flake-url = {
-      requires = [ "initrd-fs.target"];
-      after = [ "initrd-fs.target"];
+    auto-installer = {
+      requires = [ "initrd-fs.target" "network-online.target" "systemd-udevd.service"];
+      after = [ "initrd-fs.target" "network-online.target" "systemd-udevd.service"];
       unitConfig.DefaultDependencies = false;
       serviceConfig.Type = "oneshot";
       script = ''
-           param="$(get-kernel-param "flake_url")"
-           if [ -n "$param" ]; then
-             echo $param > /run/flake_url
-             echo "Using flake url from kernel parameter: $param"
-           fi
-      '';
-    };
+          flake_url="$(get-kernel-param "flake_url")"
+          if [ -n "$flake_url" ]
+          then
+            echo "Using flake url from kernel parameter: $param"
+          else
+            echo "No flake url defined for auto-installer"
+            exit 1
+          fi
 
-    #format-disk = {
-    #  requires = [ "systemd-udevd.service" "get-flake-url.service"];
-    #  after = [ "systemd-udevd.service" "get-flake-url.service"];
-    #  requiredBy = [ "install-nixos.service" ];
-    #  before = [ "install-nixos.service" ];
-    #  unitConfig.DefaultDependencies = false;
-    #  unitConfig.ConditionPathExists = "/run/flake_url";
-    #  serviceConfig.Type = "oneshot";
-    #  script = ''
-    #      udevadm trigger --subsystem-match=block; udevadm settle
-    #      sleep 1
-    #      ${disko.create cfg.diskLayout}
-    #      ${disko.mount cfg.diskLayout}
-    #  '';
-    #};
+          udevadm trigger --subsystem-match=block; udevadm settle
+          echo "Formatting disk..."
+          formatScript="$(nix build --no-link --json "''${flake_url}.config.system.build.formatScript" | jq -r '.[].outputs.out')"
+          $formatScript
+          echo "Mounting disk..."
+          mountScript="$(nix build --no-link --json "''${flake_url}.config.system.build.mountScript" | jq -r '.[].outputs.out')"
+          $mountScript
 
-    install-nixos = {
-      requires = ["network-online.target" "get-flake-url.service"];
-      after = ["network-online.target" "get-flake-url.service"];
-      requiredBy = [ "reboot-after-install.service" ];
-      before = [ "reboot-after-install.service" ];
-      unitConfig.DefaultDependencies = false;
-      unitConfig.ConditionPathExists = "/run/flake_url";
-      serviceConfig.Type = "oneshot";
-      script = ''
-          flake_url="$(cat /run/flake_url)"
           echo "Installing $flake_url"
           mkdir -p /mnt/{etc,tmp}
           touch /mnt/etc/NIXOS
-          nix build  --store /mnt --profile /mnt/nix/var/nix/profiles/system $flake_url
+          nix build  --store /mnt --profile /mnt/nix/var/nix/profiles/system "''${flake_url}.config.system.build.toplevel"
           NIXOS_INSTALL_BOOTLOADER=1 nixos-enter --root /mnt -- /run/current-system/bin/switch-to-configuration boot
-      '';
-    };
 
-    reboot-after-install = {
-      requires = ["install-nixos.service"];
-      after = ["install-nixos.service"];
-      requiredBy = [ "initrd.target" ];
-      before = [ "initrd.target" ];
-      unitConfig.DefaultDependencies = false;
-      unitConfig.ConditionPathExists = "/run/flake_url";
-      serviceConfig.Type = "oneshot";
-      script = ''
           set -o errexit
           umount --verbose --recursive /mnt
           echo -e "imported zpool(s) before export"; zpool list

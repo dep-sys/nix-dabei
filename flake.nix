@@ -29,6 +29,7 @@
       lib.installerModules = [
         self.nixosModules.build
         self.nixosModules.core
+        self.nixosModules.auto-installer
       ];
 
       lib.diskLayouts = {
@@ -48,6 +49,7 @@
       nixosModules = {
         build = import ./modules/build.nix;
         core = import ./modules/core.nix;
+        auto-installer = import ./modules/auto-installer.nix;
         instanceDefaults = import ./modules/instanceDefaults.nix;
       };
     };
