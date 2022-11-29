@@ -89,22 +89,3 @@ Official ISO images are great for interactive installations, but don't enable SS
 [hetzner.cloud]: https://hetzner.cloud
 [systemd-in-stage1]: https://github.com/NixOS/nixpkgs/projects/51
 
-## Minimal NixoS
-https://github.com/NixOS/nixpkgs/issues/21315
-https://github.com/vikanezrimaya/nixos-super-minimal
-https://github.com/NixOS/nixpkgs/pull/104828
-
-# TODO
-
-* Move disko to runtime or replace it,
-  to allow passing things like disk encryption key and the device from a pre-built image.
-  
-* document inputs
-** ssh host key (kernel param or auto-generated)
-** flake_url (kernel param)
-** ...ips, disk encryption key? disks + partition schemes
-  
-* Allow passing ssh_authorized_key via cmdline
-* Expose instance module
-  optionally with instance-data for hetzner
-* complete readme
