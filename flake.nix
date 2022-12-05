@@ -2,7 +2,6 @@
   description = "A minimal initrd, capable of running sshd and nix.";
   # this is a temporary fork including the changes from
   # https://github.com/NixOS/nixpkgs/pull/169116/files
-  # and a small patch in https://github.com/NixOS/nixpkgs/pull/197382
   # (rebased on master from time to time)
   inputs.nixpkgs.url = "github:phaer/nixpkgs/nix-dabei";
   inputs.disko.url = "github:nix-community/disko/master";
