@@ -1,4 +1,4 @@
-{ diskDevice }: {
+{ diskDevice, ... }: {
   disk = {
     ${diskDevice} = {
       device = diskDevice;
