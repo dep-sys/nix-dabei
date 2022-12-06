@@ -30,7 +30,7 @@ rsync \
 
 ssh_authorized_key="$(base64 -w0 < ~/.ssh/yubikey.pub)"
 flake_url="github:dep-sys/nix-dabei?dir=demo#nixosConfigurations.web-01"
-ssh $SSH_ARGS "root@$TARGET_SERVER" "./kexec-boot ssh_authorized_key=$ssh_authorized_key flake_url=$flake_url"
+ssh $SSH_ARGS "root@$TARGET_SERVER" "./kexec-boot ssh_authorized_key=$ssh_authorized_key flake_url=$flake_url disks=/dev/sda"
 wait_for_ssh "$TARGET_SERVER"
 
 ssh $SSH_ARGS "root@$TARGET_SERVER" journalctl -u auto-installer -f
