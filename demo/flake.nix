@@ -43,7 +43,7 @@
             buildOnTarget = true;
           };
 
-          disko.devices = nix-dabei.lib.diskLayouts.zfs-simple { diskDevice = bootDisk; };
+          disko.devices = nix-dabei.diskoConfigurations.zfs-simple { diskDevice = bootDisk; };
           boot.loader.grub = {
             enable = true;
             devices = [ bootDisk ];
