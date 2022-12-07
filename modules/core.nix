@@ -28,17 +28,6 @@ let cfg = config.nix-dabei; in
       type = types.bool;
       default = true;
     };
-
-    diskDevice = mkOption {
-      description = "disk to NUKE";
-      type = types.str;
-      default = "/dev/vda";
-    };
-    diskLayout = mkOption {
-      description = "disk layout to install";
-      type = types.attrs;
-      default = import ../disk-layouts/zfs-simple.nix { inherit (cfg) diskDevice; };
-    };
     ntpSync = {
       enable = mkOption {
         description = "Enable NTP sync during kexec image startup.";

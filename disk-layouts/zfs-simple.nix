@@ -1,7 +1,7 @@
-{ diskDevice }: {
+{ disk, ... }: {
   disk = {
-    ${diskDevice} = {
-      device = diskDevice;
+    ${disk} = {
+      device = disk;
       type = "disk";
       content = {
         type = "table";
