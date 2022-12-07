@@ -302,18 +302,10 @@ let cfg = config.nix-dabei; in
         unitConfig.DefaultDependencies = false;
         serviceConfig.Type = "oneshot";
         script = ''
-            echo -e "\nBefore time-sync"
-            echo -e "== hardware clock: $(hwclock --get --utc)"
-            echo -e "== software clock: $(date --rfc-3339=ns --utc)"
-
             ntpdate -b ${ntpServersAsString}
             if [[ "${lib.boolToString cfg.ntpSync.updateHwClock}" == "true" ]]; then
               hwclock --systohc
             fi
-
-            echo -e "\nAfter time-sync"
-            echo -e "== hardware clock: $(hwclock --get --utc)"
-            echo -e "== software clock: $(date --rfc-3339=ns --utc)"
         '';
       };
     })
