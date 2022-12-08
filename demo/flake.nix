@@ -1,7 +1,7 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nix-dabei.url = "github:dep-sys/nix-dabei/auto-installer";
+    nix-dabei.url = "github:dep-sys/nix-dabei";
     colmena.url = "github:zhaofengli/colmena/main";
   };
 
