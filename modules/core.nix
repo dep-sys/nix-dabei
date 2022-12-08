@@ -142,7 +142,6 @@ let cfg = config.nix-dabei; in
 
               # partitioning
               parted = "${pkgs.parted}/bin/parted";
-              jq = "${pkgs.jq}/bin/jq";
 
               get-kernel-param = pkgs.writeScript "get-kernel-param" ''
                 for o in $(< /proc/cmdline); do
