@@ -31,7 +31,6 @@
       web-01 = { name, nodes, pkgs, lib, config, modulesPath, ... }: {
         imports = [
           "${modulesPath}/profiles/qemu-guest.nix"
-          nix-dabei.inputs.disko.nixosModules.disko
         ];
 
         config = {
