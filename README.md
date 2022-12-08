@@ -43,7 +43,7 @@ ssh -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null -p 2222 -i fixture
 
 ``` sh
 # build a kexec bundle
-kexec="$(nix build .#kexec --json| jq -r '.[].outputs.out')"
+kexec="$(nix build .#kexec --no-link --print-out-paths)"
 
 # copy it to your $TARGET_SERVER
 rsync \
