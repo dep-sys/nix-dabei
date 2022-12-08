@@ -58,7 +58,7 @@ let cfg = config.nix-dabei; in
       # Nix-dabei isn't intended to keep state, but NixOS wants
       # it defined and it does not hurt. You are still able to
       # install any realease with the images built.
-      system.stateVersion = "22.11";
+      system.stateVersion = lib.trivial.release;
 
       # toplevel does not build without a root fs but is useful for debugging
       # and it does not seem to hurt
