@@ -44,8 +44,6 @@
             enable = true;
             device = "nodev";
           };
-          # grub.devices = "nodev" removes grub from the derivation, but we need it.
-          system.build.grub = lib.mkForce pkgs.grub2;
 
           fileSystems = {
             "/boot" =
