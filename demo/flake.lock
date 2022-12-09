@@ -23,28 +23,6 @@
         "type": "github"
       }
     },
-    "disko": {
-      "inputs": {
-        "nixpkgs": [
-          "nix-dabei",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1670157103,
-        "narHash": "sha256-EDvoYUwi7RB/oSOtbk7ykRQXQ0KI5A+UPI8D/TanYXY=",
-        "owner": "nix-community",
-        "repo": "disko",
-        "rev": "e0ce5fb75f1197cf57b0a5c46434d69c14efc842",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-community",
-        "ref": "master",
-        "repo": "disko",
-        "type": "github"
-      }
-    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -73,25 +51,6 @@
       "original": {
         "owner": "numtide",
         "repo": "flake-utils",
-        "type": "github"
-      }
-    },
-    "nix-dabei": {
-      "inputs": {
-        "disko": "disko",
-        "nixpkgs": "nixpkgs_2"
-      },
-      "locked": {
-        "lastModified": 1670497549,
-        "narHash": "sha256-am0scHGm8nJzrY5JYGrtGtiV0WLyEOGudPan6Zgx62M=",
-        "owner": "dep-sys",
-        "repo": "nix-dabei",
-        "rev": "eff63f66502f7da3253261e9ee65ba3e4314fa33",
-        "type": "github"
-      },
-      "original": {
-        "owner": "dep-sys",
-        "repo": "nix-dabei",
         "type": "github"
       }
     },
@@ -139,27 +98,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1670263530,
-        "narHash": "sha256-e02SQGQcKxgyJlV0HWE9MBWIyjJX1spxcwYb/2RumZ4=",
-        "owner": "phaer",
-        "repo": "nixpkgs",
-        "rev": "08dd346b3f7a3975a49fde10cb57fba523d856e9",
-        "type": "github"
-      },
-      "original": {
-        "owner": "phaer",
-        "ref": "nix-dabei",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
-    "nixpkgs_3": {
-      "locked": {
-        "lastModified": 1670242877,
-        "narHash": "sha256-jBLh7dRHnbfvPPA9znOC6oQfKrCPJ0El8Zoe0BqnCjQ=",
+        "lastModified": 1670507980,
+        "narHash": "sha256-riNZa0xzM1it3pzxciwALeMs+0CsBMWIW2FqulzK8vM=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "6e51c97f1c849efdfd4f3b78a4870e6aa2da4198",
+        "rev": "2787fc7d1e51404678614bf0fe92fc296746eec0",
         "type": "github"
       },
       "original": {
@@ -172,8 +115,7 @@
     "root": {
       "inputs": {
         "colmena": "colmena",
-        "nix-dabei": "nix-dabei",
-        "nixpkgs": "nixpkgs_3"
+        "nixpkgs": "nixpkgs_2"
       }
     },
     "stable": {

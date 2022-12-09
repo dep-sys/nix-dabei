@@ -1,7 +1,6 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nix-dabei.url = "github:dep-sys/nix-dabei";
     colmena.url = "github:zhaofengli/colmena/main";
   };
 
@@ -11,7 +10,7 @@
   nixConfig.extra-substituters = [ "https://colmena.cachix.org" ];
   nixConfig.extra-trusted-public-keys = [ "colmena.cachix.org-1:7BzpDnjjH8ki2CT3f6GdOk7QAzPOl+1t3LvTLXqYcSg=" ];
 
-  outputs = { self, nixpkgs, nix-dabei, colmena, ... }: let
+  outputs = { self, nixpkgs, colmena, ... }: let
     system = "x86_64-linux";
     pkgs = import nixpkgs { inherit system; };
     sshKeys = [
