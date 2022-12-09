@@ -43,6 +43,28 @@
 
           boot.loader.grub = {
             enable = true;
+            device = "nodev";
+          };
+
+          fileSystems = {
+            "/boot" =
+              {
+                device = "/dev/disk/by-partlabel/ESP";
+                fsType = "vfat";
+                neededForBoot = true;
+              };
+            "/" =
+              {
+                device = "rpool/local/root";
+                fsType = "zfs";
+                neededForBoot = true;
+              };
+            "/nix" =
+              {
+                device = "rpool/local/nix";
+                fsType = "zfs";
+                neededForBoot = true;
+              };
           };
 
           services.openssh = {
