@@ -22,10 +22,10 @@ lib.mkIf config.nix-dabei.auto-install.enable {
 
           udevadm trigger --subsystem-match=block; udevadm settle
           echo "Formatting disk..."
-          formatScript="$(nix build --no-link --json "''${flake_url}.config.system.build.formatScript" | jq -r '.[].outputs.out')"
+          formatScript="$(nix build --no-link --print-out-paths "''${flake_url}.config.system.build.formatScript")"
           $formatScript
           echo "Mounting disk..."
-          mountScript="$(nix build --no-link --json "''${flake_url}.config.system.build.mountScript" | jq -r '.[].outputs.out')"
+          mountScript="$(nix build --no-link --print-out-paths "''${flake_url}.config.system.build.mountScript")"
           $mountScript
 
           echo "Installing $flake_url"
