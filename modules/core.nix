@@ -81,7 +81,7 @@ let cfg = config.nix-dabei; in
         ];
 
         initrd = {
-          kernelModules = [ "virtio_pci" "virtio_scsi" "ata_piix" "sd_mod" "sr_mod" "ahci" "nvme" ];
+          kernelModules = [ "efivarfs" "virtio_pci" "virtio_scsi" "ata_piix" "sd_mod" "sr_mod" "ahci" "nvme" ];
           network = {
             enable = true;
           };
