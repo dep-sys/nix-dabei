@@ -16,8 +16,8 @@ lib.mkIf config.nix-dabei.auto-install.enable {
           then
             echo "Using flake url from kernel parameter: $flake_url"
           else
-            echo "No flake url defined for auto-installer"
-            exit 1
+            echo "No flake url defined for auto-install, skipping auto-install"
+            exit 0
           fi
 
           udevadm trigger --subsystem-match=block; udevadm settle
