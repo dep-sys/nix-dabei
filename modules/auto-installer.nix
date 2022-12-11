@@ -48,8 +48,15 @@ lib.mkIf config.nix-dabei.auto-install.enable {
           echo "Installing $flake_url"
           mkdir -p /mnt/{etc,tmp}
           touch /mnt/etc/NIXOS
+
+          echo "Installing system closure..."
           nix build  --store /mnt --profile /mnt/nix/var/nix/profiles/system "''${flake_url}.config.system.build.toplevel"
-          NIXOS_INSTALL_BOOTLOADER=1 nixos-enter --root /mnt -- /run/current-system/bin/switch-to-configuration boot
+
+          echo "Installing grub..."
+          nixos-enter --root /mnt -- /run/current-system/sw/sbin/grub-install --removable $disk
+
+          echo "Switching to configuration..."
+          NIXOS_INSTALL_BOOTLOADER=0 nixos-enter --root /mnt -- /run/current-system/bin/switch-to-configuration boot
 
           echo "Unmounting & Reboot"
           umount --verbose --recursive /mnt
