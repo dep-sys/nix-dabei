@@ -28,6 +28,9 @@ lib.mkIf config.nix-dabei.auto-install.enable {
           mountScript="$(nix build --no-link --json "''${flake_url}.config.system.build.mountScript" | jq -r '.[].outputs.out')"
           $mountScript
 
+          # support UEFI systemd-boot
+          mount -t efivarfs efivarfs /sys/firmware/efi/efivars || true
+
           echo "Installing $flake_url"
           mkdir -p /mnt/{etc,tmp}
           touch /mnt/etc/NIXOS
