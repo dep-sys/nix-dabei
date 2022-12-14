@@ -292,9 +292,7 @@ let cfg = config.nix-dabei; in
         serviceConfig.Type = "oneshot";
         script = ''
             ntpdate -b ${ntpServersAsString}
-            if [[ "${lib.boolToString cfg.ntpSync.updateHwClock}" == "true" ]]; then
-              hwclock --systohc
-            fi
+            ${lib.optionalString cfg.ntpSync.updateHwClock "hwclock --systohc"}
         '';
       };
     })
