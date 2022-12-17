@@ -1,9 +1,5 @@
-{ disks, ... }:
-let
-  disk = builtins.head disks;
-in {
-  disk = {
-    ${disk} = {
+{ disks, lib, ... }: {
+  disk = lib.genAttrs disks (disk: {
       device = disk;
       type = "disk";
       content = {
@@ -43,12 +39,11 @@ in {
           }
         ];
       };
-    };
-  };
+  });
   zpool = {
     rpool = {
       type = "zpool";
-      mode = "";
+      mode = "mirror";
       rootFsOptions = {
         compression = "zstd";
         acltype = "posixacl";

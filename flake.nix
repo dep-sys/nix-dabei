@@ -39,6 +39,7 @@
 
       diskoConfigurations = {
         zfs-simple = import ./disk-layouts/zfs-simple.nix;
+        zfs-mirror = import ./disk-layouts/zfs-mirror.nix;
       };
 
       nixosModules = {
