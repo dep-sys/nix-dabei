@@ -96,16 +96,6 @@ lib.mkIf config.nix-dabei.auto-install.enable {
           reboot
       '';
       };
-
-      #shell = {
-      #  requiredBy = [ "initrd.target" ];
-      #  unitConfig.DefaultDependencies = false;
-      #  serviceConfig.Type = "simple";
-      #  serviceConfig.Restart = "always";
-      #  script = ''
-      #    /bin/setsid /bin/sh -c 'exec /bin/sh <> /dev/console >&0 2>&1'
-      #  '';
-      #};
     };
   };
 }
