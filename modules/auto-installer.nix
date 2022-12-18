@@ -4,15 +4,33 @@ lib.mkIf config.nix-dabei.auto-install.enable {
     extraBin =
       let
         args = { inherit lib; disks = [ "\${disk1}" "\${disk2}" ]; };
-        zfs-simple = diskoConfigurations.zfs-simple args;
-        zfs-mirror = diskoConfigurations.zfs-mirror args;
+        evaluatedDiskoConfigurations = lib.mapAttrs
+          (name: config: config args)
+          diskoConfigurations;
+        createScripts = lib.mapAttrs'
+          (name: config: lib.nameValuePair "disko-create-${name}"
+            (disko.lib.createScriptNoDeps config pkgs))
+          evaluatedDiskoConfigurations;
+        mountScripts = lib.mapAttrs'
+          (name: config: lib.nameValuePair "disko-mount-${name}"
+            (disko.lib.mountScriptNoDeps config pkgs))
+          evaluatedDiskoConfigurations;
       in
-      {
-        disko-create-zfs-simple = disko.lib.createScriptNoDeps zfs-simple pkgs;
-        disko-mount-zfs-simple = disko.lib.mountScriptNoDeps zfs-simple pkgs;
-        disko-create-zfs-mirror = disko.lib.createScriptNoDeps zfs-mirror pkgs;
-        disko-mount-zfs-mirror = disko.lib.mountScriptNoDeps zfs-mirror pkgs;
-      };
+        createScripts // mountScripts //
+        {
+          parted = "${pkgs.parted}/bin/parted";
+          jq = "${pkgs.jq}/bin/jq";
+
+          get-kernel-param = pkgs.writeScript "get-kernel-param" ''
+              for o in $(< /proc/cmdline); do
+                  case $o in
+                      $1=*)
+                          echo "''${o#"$1="}"
+                          ;;
+                  esac
+              done
+          '';
+       };
 
     services = {
       auto-install = {
@@ -53,6 +71,7 @@ lib.mkIf config.nix-dabei.auto-install.enable {
               echo "disk1=''${disk1:-} disk2=''${disk2:-}"
               echo "Formatting ''${disks_num} disks with layout ''${disks_layout}: ''${disks[*]}"
 
+              # TODO don't hardcode disk-layouts
               if [ "$disks_layout" = "zfs-single" ]; then
                  bash disko-create-zfs-simple
                  echo "Mounting disk..."
