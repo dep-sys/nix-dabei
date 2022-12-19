@@ -24,8 +24,8 @@ jobs:
     - name: Show kexec size
       run: du -Lh  result/*
 
-    - name: Build demo system
+    - name: Build simple example system
       run: |
-        nix build ./demo#nixosConfigurations.web-01.config.system.build.toplevel --json \
+        nix build ./examples/simple#nixosConfigurations.web-01.config.system.build.toplevel --json \
         | jq -r '.[].outputs | to_entries[].value' \
         | nix run nixpkgs#cachix push nix-dabei

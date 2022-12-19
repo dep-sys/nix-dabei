@@ -31,7 +31,7 @@ with lib;
           test -f disk.img || ${pkgs.qemu_kvm}/bin/qemu-img create -f qcow2 disk.img 10G
           ssh_host_key="$(cat ${../fixtures/ssh_host_ed25519_key} | base64 -w0)"
           ssh_authorized_key="$(cat ${../fixtures/id_ed25519.pub} | base64 -w0)"
-          flake_url="github:dep-sys/nix-dabei/?dir=demo#nixosConfigurations.web-01"
+          flake_url="github:dep-sys/nix-dabei/?dir=examples/simple#nixosConfigurations.web-01"
           exec ${pkgs.qemu_kvm}/bin/qemu-kvm -name nix-dabei \
             -m 2048 \
             -kernel ${kernel} -initrd ${initrd} \
