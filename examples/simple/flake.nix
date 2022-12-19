@@ -13,9 +13,13 @@
   outputs = { self, nixpkgs, colmena, ... }: let
     system = "x86_64-linux";
     pkgs = import nixpkgs { inherit system; };
-    sshKeys = [
-      "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDLopgIL2JS/XtosC8K+qQ1ZwkOe1gFi8w2i1cd13UehWwkxeguU6r26VpcGn8gfh6lVbxf22Z9T2Le8loYAhxANaPghvAOqYQH/PJPRztdimhkj2h7SNjP1/cuwlQYuxr/zEy43j0kK0flieKWirzQwH4kNXWrscHgerHOMVuQtTJ4Ryq4GIIxSg17VVTA89tcywGCL+3Nk4URe5x92fb8T2ZEk8T9p1eSUL+E72m7W7vjExpx1PLHgfSUYIkSGBr8bSWf3O1PW6EuOgwBGidOME4Y7xNgWxSB/vgyHx3/3q5ThH0b8Gb3qsWdN22ZILRAeui2VhtdUZeuf2JYYh8L"
-    ];
+
+    # TODO ssh pub key: write during auto-install, don't include in system closure?
+    sshKeys = pkgs.lib.warn ''
+      FIXME replace this ssh key before you install. This is a well-known,
+      # INSECURE key for testing, from nixpkgs. It's private key is included
+      # in ../../fixtures.
+    '' ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBVxf7fZiqKDblHFEDxt6X9/rTjBXSn/re6b46S7/e9/ nixbld@localhost"];
   in {
     apps.${system} = {
       colmena = colmena.apps.${system}.default;
