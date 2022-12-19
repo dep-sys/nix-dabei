@@ -101,7 +101,8 @@ lib.mkIf config.nix-dabei.auto-install.enable {
           echo "Installing grub..."
           # TODO read $disks from files or so, in order to be able to split the installer into phases again.
           # ( can't depend on "global" shell vars )
-          # TODOL: uefi support: don't install grub at all, depend well-known path?
+          # TODO: test & fix uefi support: don't install grub at all, depend well-known path?
+          # TODO mirror: ensure that resulting system boots from any disk and updates both /boot partitions
           for disk in ''${disks[@]}; do
               nixos-enter --root /mnt -- /run/current-system/sw/sbin/grub-install $disk
           done
