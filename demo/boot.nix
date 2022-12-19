@@ -30,5 +30,10 @@
         fsType = "zfs";
         neededForBoot = true;
       };
+    "/home" =
+      {
+        device = "rpool/safe/home";
+        fsType = "zfs";
+      };
   };
 }
