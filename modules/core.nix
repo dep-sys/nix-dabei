@@ -15,7 +15,7 @@ let cfg = config.nix-dabei; in
     tty-shell.enable = mkOption {
       description = "enable shell on tty1";
       type = types.bool;
-      default = true;
+      default = false;
     };
 
     stay-in-stage-1 = mkOption {
@@ -304,6 +304,7 @@ let cfg = config.nix-dabei; in
         };
         services.tty-shell = {
           requiredBy = [ "initrd.target" ];
+          conflicts = [ "shutdown.target" ];
           unitConfig.DefaultDependencies = false;
           serviceConfig.Type = "simple";
           serviceConfig.Restart = "always";
