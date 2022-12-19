@@ -1,16 +1,22 @@
 { lib, pkgs, ... }:
 {
+  # nix-dabei is not tested with other bootloaders,
+  # A PR for systemd-boot support would be appreciated.
   boot.loader.grub = {
     enable = true;
     # We use "nodev" here to avoid having to declare the disk device (e.g. /dev/sda) in
-    # this config, so we'll only need to know about it during install-time.
+    # this config. We let grub only update the menu during (re-)install, while nix-dabei's
+    # auto-installer writes the bootloader to MBR.
     device = "nodev";
   };
-  # boot.loader.grub.device = "nodev" excludes grub from the system,
-  # but we need it inside the systems close and optimally inside PATH
-  # do be able to call it during auto-install.
+  # Because ´boot.loader.grub.device = "nodev"´ excludes grub from the system,
+  # but we need it inside the target system closure and optimally inside PATH
+  # to be able to call it in a chroot during auto-install.
   environment.systemPackages = [ pkgs.grub2 ];
 
+  # Mount zfs datasets created by auto-install from nix-dabei.diskoConfigurations,
+  # generating this configuration automatically currently requires disko in your flake;
+  # TODO disko: auto-generate config here, or refer to custom example (and do it there)
   fileSystems = {
     "/boot" =
       {
