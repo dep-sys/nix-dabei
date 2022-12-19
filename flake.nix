@@ -4,7 +4,8 @@
   # https://github.com/NixOS/nixpkgs/pull/169116/files
   # (rebased on master from time to time)
   inputs.nixpkgs.url = "github:phaer/nixpkgs/nix-dabei";
-  inputs.disko.url = "github:nix-community/disko/master";
+  # https://github.com/nix-community/disko/pull/72
+  inputs.disko.url = "github:phaer/disko/allow-variables";
   inputs.disko.inputs.nixpkgs.follows = "nixpkgs";
 
   outputs = { self, nixpkgs, disko }:
@@ -38,6 +39,7 @@
 
       diskoConfigurations = {
         zfs-simple = import ./disk-layouts/zfs-simple.nix;
+        zfs-mirror = import ./disk-layouts/zfs-mirror.nix;
       };
 
       nixosModules = {

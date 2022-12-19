@@ -1,9 +1,5 @@
-{ disks, ... }:
-let
-  disk = builtins.head disks;
-in {
-  disk = {
-    ${disk} = {
+{ disks, lib, ... }: {
+  disk = lib.genAttrs disks (disk: {
       device = disk;
       type = "disk";
       content = {
@@ -13,7 +9,7 @@ in {
           {
             name = "boot";
             type = "partition";
-            start = "0";
+            start = "0%";
             end = "1M";
             part-type = "primary";
             flags = ["bios_grub"];
@@ -43,12 +39,11 @@ in {
           }
         ];
       };
-    };
-  };
+  });
   zpool = {
     rpool = {
       type = "zpool";
-      mode = "";
+      mode = "mirror";
       rootFsOptions = {
         compression = "zstd";
         acltype = "posixacl";

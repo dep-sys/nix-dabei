@@ -12,6 +12,12 @@ let cfg = config.nix-dabei; in
       type = types.bool;
       default = true;
     };
+    tty-shell.enable = mkOption {
+      description = "enable shell on tty1";
+      type = types.bool;
+      default = false;
+    };
+
     stay-in-stage-1 = mkOption {
       description = "disable switching to stage-2 so sshd keeps running until reboot";
       type = types.bool;
@@ -105,7 +111,7 @@ let cfg = config.nix-dabei; in
         ];
 
         initrd = {
-          kernelModules = [ "virtio_pci" "virtio_scsi" "ata_piix" "sd_mod" "sr_mod" "ahci" "nvme" ];
+          kernelModules = [ "virtio_pci" "virtio_scsi" "ata_piix" "sd_mod" "sr_mod" "ahci" "nvme" "e1000e" ];
           network = {
             enable = true;
           };
@@ -161,27 +167,9 @@ let cfg = config.nix-dabei; in
               nixos-enter = "${pkgs.nixos-install-tools}/bin/nixos-enter";
               unshare = "${pkgs.util-linux}/bin/unshare";
 
-              ssh-keygen = "${config.programs.ssh.package}/bin/ssh-keygen";
-              setsid = "${pkgs.util-linux}/bin/setsid";
-
-              # NTP time synchronization
-              hwclock = "${pkgs.util-linux}/bin/hwclock";
-              ntpdate = "${pkgs.ntp}/bin/ntpdate";
-
-              # partitioning
-              parted = "${pkgs.parted}/bin/parted";
-              jq = "${pkgs.jq}/bin/jq";
-
-              get-kernel-param = pkgs.writeScript "get-kernel-param" ''
-                for o in $(< /proc/cmdline); do
-                    case $o in
-                        $1=*)
-                            echo "''${o#"$1="}"
-                            ;;
-                    esac
-                done
-              '';
-            };
+              # debugging
+              ip = "${pkgs.iproute2}/bin/ip";
+           };
 
             # When these are enabled, they prevent useful output from
             # going to the console
@@ -199,48 +187,54 @@ let cfg = config.nix-dabei; in
           authorizedKeys = config.users.users.root.openssh.authorizedKeys.keys;
           port = 22;
         };
-        systemd.services = {
-          setup-ssh-authorized-keys = {
-            requires = ["initrd-fs.target"];
-            after = ["initrd-fs.target"];
-            requiredBy = [ "sshd.service" ];
-            before = [ "sshd.service" ];
-            unitConfig.DefaultDependencies = false;
-            serviceConfig.Type = "oneshot";
-            script = ''
-              mkdir -p /etc/ssh/authorized_keys.d
-              param="$(get-kernel-param "ssh_authorized_key")"
-              if [ -n "$param" ]; then
-                 umask 177
-                 (echo -e "\n"; echo "$param" | base64 -d) >> /etc/ssh/authorized_keys.d/root
-                 cat /etc/ssh/authorized_keys.d/root
-                 echo "Using ssh authorized key from kernel parameter"
-              fi
-         '';
+        systemd = {
+          extraBin = {
+            ssh-keygen = "${config.programs.ssh.package}/bin/ssh-keygen";
           };
 
-          generate-ssh-host-key = {
-            requires = ["initrd-fs.target"];
-            after = ["initrd-fs.target"];
-            requiredBy = [ "sshd.service" ];
-            before = [ "sshd.service" ];
-            unitConfig.DefaultDependencies = false;
-            serviceConfig.Type = "oneshot";
-            script = ''
-              mkdir -p /etc/ssh/
+          services = {
+            setup-ssh-authorized-keys = {
+              requires = ["initrd-fs.target"];
+              after = ["initrd-fs.target"];
+              requiredBy = [ "sshd.service" ];
+              before = [ "sshd.service" ];
+              unitConfig.DefaultDependencies = false;
+              serviceConfig.Type = "oneshot";
+              script = ''
+                  mkdir -p /etc/ssh/authorized_keys.d
+                  param="$(get-kernel-param "ssh_authorized_key")"
+                  if [ -n "$param" ]; then
+                     umask 177
+                     (echo -e "\n"; echo "$param" | base64 -d) >> /etc/ssh/authorized_keys.d/root
+                     cat /etc/ssh/authorized_keys.d/root
+                     echo "Using ssh authorized key from kernel parameter"
+                  fi
+              '';
+            };
 
-              param="$(get-kernel-param "ssh_host_key")"
-              if [ -n "$param" ]; then
-                 umask 177
-                 echo "$param" | base64 -d > /etc/ssh/ssh_host_ed25519_key
-                 ssh-keygen -y -f /etc/ssh/ssh_host_ed25519_key > /etc/ssh/ssh_host_ed25519_key.pub
-                 echo "Using ssh host key from kernel parameter"
-              fi
-              if [ ! -f /etc/ssh/ssh_host_ed25519_key ]; then
-                 ssh-keygen -f /etc/ssh/ssh_host_ed25519_key -t ed25519 -N ""
-                 echo "Generated new ssh host key"
-              fi
-          '';
+            generate-ssh-host-key = {
+              requires = ["initrd-fs.target"];
+              after = ["initrd-fs.target"];
+              requiredBy = [ "sshd.service" ];
+              before = [ "sshd.service" ];
+              unitConfig.DefaultDependencies = false;
+              serviceConfig.Type = "oneshot";
+              script = ''
+                  mkdir -p /etc/ssh/
+
+                  param="$(get-kernel-param "ssh_host_key")"
+                  if [ -n "$param" ]; then
+                     umask 177
+                     echo "$param" | base64 -d > /etc/ssh/ssh_host_ed25519_key
+                     ssh-keygen -y -f /etc/ssh/ssh_host_ed25519_key > /etc/ssh/ssh_host_ed25519_key.pub
+                     echo "Using ssh host key from kernel parameter"
+                  fi
+                  if [ ! -f /etc/ssh/ssh_host_ed25519_key ]; then
+                     ssh-keygen -f /etc/ssh/ssh_host_ed25519_key -t ed25519 -N ""
+                     echo "Generated new ssh host key"
+                  fi
+              '';
+            };
           };
         };
       };
@@ -281,19 +275,43 @@ let cfg = config.nix-dabei; in
     # Synchronize time using NTP to prevent clock skew that could interfere
     # with date & time sensitive operations like certificate verification.
     (lib.mkIf cfg.ntpSync.enable {
-      boot.initrd.systemd.services.ntpdate-timesync = let
-       ntpServersAsString = lib.concatStringsSep " " cfg.ntpSync.servers;
-     in {
-        requires = [ "initrd-fs.target" "network-online.target"];
-        requiredBy = [ "auto-installer.service" ];
-        before = [ "auto-installer.service" ];
-        after = [ "initrd-fs.target" "network-online.target"];
-        unitConfig.DefaultDependencies = false;
-        serviceConfig.Type = "oneshot";
-        script = ''
+      boot.initrd.systemd = {
+        extraBin = {
+          hwclock = "${pkgs.util-linux}/bin/hwclock";
+          ntpdate = "${pkgs.ntp}/bin/ntpdate";
+        };
+        services.ntpdate-timesync = let
+          ntpServersAsString = lib.concatStringsSep " " cfg.ntpSync.servers;
+        in {
+          requires = [ "initrd-fs.target" "network-online.target"];
+          requiredBy = [ "auto-installer.service" ];
+          before = [ "auto-installer.service" ];
+          after = [ "initrd-fs.target" "network-online.target"];
+          unitConfig.DefaultDependencies = false;
+          serviceConfig.Type = "oneshot";
+          script = ''
             ntpdate -b ${ntpServersAsString}
             ${lib.optionalString cfg.ntpSync.updateHwClock "hwclock --systohc"}
         '';
+        };
+      };
+    })
+
+    (lib.mkIf cfg.tty-shell.enable {
+      boot.initrd.systemd = {
+        extraBin = {
+              setsid = "${pkgs.util-linux}/bin/setsid";
+        };
+        services.tty-shell = {
+          requiredBy = [ "initrd.target" ];
+          conflicts = [ "shutdown.target" ];
+          unitConfig.DefaultDependencies = false;
+          serviceConfig.Type = "simple";
+          serviceConfig.Restart = "always";
+          script = ''
+          /bin/setsid /bin/sh -c 'exec ${pkgs.bashInteractive}/bin/bash <> /dev/console >&0 2>&1'
+        '';
+        };
       };
     })
   ];
