@@ -34,8 +34,11 @@
     system = "x86_64-linux";
     pkgs = import nixpkgs { inherit system; };
 
+    # TODO we can and should pass down hostname via kernel param
     settings = {
+      # FIXME replace with your own hostname
       hostName = "web-01";
+      # FIXME replace with your own domain
       domain = "flawed.cloud";
       # TODO ssh pub key: write during auto-install, don't include in system closure?
       sshKeys = pkgs.lib.warn ''
