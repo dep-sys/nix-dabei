@@ -111,7 +111,7 @@ let cfg = config.nix-dabei; in
         ];
 
         initrd = {
-          kernelModules = [ "virtio_pci" "virtio_scsi" "ata_piix" "sd_mod" "sr_mod" "ahci" "nvme" "e1000e" ];
+          kernelModules = [ "virtio_pci" "virtio_scsi" "ata_piix" "sd_mod" "sr_mod" "ahci" "nvme" ];
           network = {
             enable = true;
           };
@@ -166,9 +166,6 @@ let cfg = config.nix-dabei; in
               busybox = "${pkgs.busybox-sandbox-shell}/bin/busybox";
               nixos-enter = "${pkgs.nixos-install-tools}/bin/nixos-enter";
               unshare = "${pkgs.util-linux}/bin/unshare";
-
-              # debugging
-              ip = "${pkgs.iproute2}/bin/ip";
            };
 
             # When these are enabled, they prevent useful output from

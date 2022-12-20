@@ -25,7 +25,7 @@ rsync \
 
 
 ssh_authorized_key="$(base64 -w0 < ~/.ssh/yubikey.pub)"
-flake_url="github:dep-sys/nix-dabei/?dir=demo#nixosConfigurations.web-01"
+flake_url="github:dep-sys/nix-dabei/?dir=examples/custom#nixosConfigurations.storage-01"
 
 # ip=<client-ip>:<nfs-server-ip>:<gw-ip>:<netmask>:<hostname>:<device>:<autoconf>:<dns0-ip>:<dns1-ip>
 static_ip="${TARGET_IP}::${TARGET_GATEWAY}:${TARGET_NETMASK}:${TARGET_SERVER}:${TARGET_DEVICE}"

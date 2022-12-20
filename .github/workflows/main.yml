@@ -29,3 +29,9 @@ jobs:
         nix build ./examples/simple#nixosConfigurations.web-01.config.system.build.toplevel --json \
         | jq -r '.[].outputs | to_entries[].value' \
         | nix run nixpkgs#cachix push nix-dabei
+
+    - name: Build custom demo system
+      run: |
+        nix build ./examples/custom#nixosConfigurations.storage-01.config.system.build.toplevel --json \
+        | jq -r '.[].outputs | to_entries[].value' \
+        | nix run nixpkgs#cachix push nix-dabei
