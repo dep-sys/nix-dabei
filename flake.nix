@@ -22,7 +22,7 @@
           tests // {
             inherit (config.system.build)
               kexec
-              installerVM;
+              vm;
             default = config.system.build.kexec;
           };
 

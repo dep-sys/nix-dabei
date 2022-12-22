@@ -23,10 +23,10 @@ It **should** work for other cloud providers and environments, such as rasperrry
 
 ## Run the initrd in a virtual machine
 
-...with a mounted empty disk, which is useful for testing and development:
+...with a mounted empty diskn `vm.img`, which is useful for testing and development:
 
 ```sh
-nix run -L .#installerVM
+nix run -L .#vm
 ```
 (You can kill it by entering `Ctrl-a x`)
 
