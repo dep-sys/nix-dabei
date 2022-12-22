@@ -2,21 +2,6 @@
 lib.mkIf config.nix-dabei.auto-install.enable {
   boot.initrd.systemd = {
     extraBin =
-      let
-        args = { inherit lib; disks = [ "\${disk1}" "\${disk2}" ]; };
-        evaluatedDiskoConfigurations = lib.mapAttrs
-          (name: config: config args)
-          diskoConfigurations;
-        createScripts = lib.mapAttrs'
-          (name: config: lib.nameValuePair "disko-create-${name}"
-            (disko.lib.createScriptNoDeps config pkgs))
-          evaluatedDiskoConfigurations;
-        mountScripts = lib.mapAttrs'
-          (name: config: lib.nameValuePair "disko-mount-${name}"
-            (disko.lib.mountScriptNoDeps config pkgs))
-          evaluatedDiskoConfigurations;
-      in
-        createScripts // mountScripts //
         {
           parted = "${pkgs.parted}/bin/parted";
           jq = "${pkgs.jq}/bin/jq";

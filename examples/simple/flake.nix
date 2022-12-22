@@ -14,6 +14,8 @@
     # as well; please file an issue if not!
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
+    nix-dabei.url = "github:dep-sys/nix-dabei";
+
     # We use colmena/main with its own nixpkgs dependency (no .follows)
     # because we use an interface which isn't in stable yet, and its most likely cached,
     # see below.
@@ -28,11 +30,12 @@
   nixConfig.extra-trusted-public-keys = [ "colmena.cachix.org-1:7BzpDnjjH8ki2CT3f6GdOk7QAzPOl+1t3LvTLXqYcSg=" ];
 
   # This flake depends only on nixpkgs and colmena, noteably NOT on nix-dabei nor disko
-  outputs = { self, nixpkgs, colmena, ... }: let
+  outputs = { self, nixpkgs, nix-dabei, colmena, ... }: let
     # nix-dabei currently supports only x86_64 systems, lets discuss in the
     # issue tracker if you're interested in supporting arm64 and others!
     system = "x86_64-linux";
-    pkgs = import nixpkgs { inherit system; };
+    pkgs = nixpkgs.legacyPackages.${system};
+    lib = nixpkgs.lib;
 
     # TODO we can and should pass down hostname via kernel param
     settings = {
@@ -51,6 +54,26 @@
     apps.${system} = {
       inherit (colmena.apps.${system}) colmena;
     };
+
+    lib.makeDiskoScripts = disks:
+      let
+        disko = nix-dabei.inputs.disko;
+        args = { inherit lib disks; };
+        evaluatedDiskoConfigurations = lib.mapAttrs
+          (name: config: config args)
+          self.diskoConfigurations;
+        createScripts = lib.mapAttrs'
+          (name: config: lib.nameValuePair "disko-create-${name}"
+            (disko.lib.createScriptNoDeps config pkgs))
+          evaluatedDiskoConfigurations;
+        mountScripts = lib.mapAttrs'
+          (name: config: lib.nameValuePair "disko-mount-${name}"
+            (disko.lib.mountScriptNoDeps config pkgs))
+          evaluatedDiskoConfigurations;
+      in
+        pkgs.linkFarm "disko-scripts" (createScripts // mountScripts);
+
+    diskoConfigurations.web-01 = import "${nix-dabei}/disk-layouts/zfs-simple.nix";
 
     nixosConfigurations = self.colmenaHive.nodes;
     colmenaHive = colmena.lib.makeHive {
