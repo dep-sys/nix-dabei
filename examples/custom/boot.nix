@@ -16,7 +16,7 @@
 
   # Mount zfs datasets created by auto-install from nix-dabei.diskoConfigurations,
   # generating this configuration automatically currently requires disko in your flake;
-  # TODO disko: auto-generate config here, or refer to custom example (and do it there)
+  # TODO disko: auto-generate config here, or refer to simple example (and do it there)
   fileSystems = {
     "/boot" =
       {
