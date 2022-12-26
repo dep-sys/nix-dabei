@@ -17,7 +17,7 @@
           {
             inherit (config.system.build)
               kexec
-              installerVM;
+              vm;
             default = config.system.build.kexec;
           };
 
@@ -29,12 +29,11 @@
 
       nixosConfigurations.default = self.lib.makeInstaller [
         "${nixpkgs}/nixos/modules/profiles/qemu-guest.nix"
-
       ];
 
       nixosModules = {
-        build = import ./modules/build.nix;
-        core = import ./modules/core.nix;
+        build = import ./build.nix;
+        module = import ./module.nix;
       };
     };
 }
