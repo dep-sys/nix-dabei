@@ -29,15 +29,15 @@ let cfg = config.nix-dabei; in
       default = true;
     };
 
-    ntpSync = {
+    ntp = {
       enable = mkOption {
         description = "Enable NTP sync during kexec image startup.";
         type = types.bool;
         default = true;
       };
-      updateHwClock = mkOption {
+      update-hardware-clock = mkOption {
         description = ''
-          NTPdate only synchronizes the software clock. If 'updateHwClock' is
+          NTPdate only synchronizes the software clock. If 'update-hardware-clock' is
           true, the synchronized time will also be written to the hardware clock.
           Disabled per default as it might produce unwanted side-effects on
           virtualized hardware clocks in VMs.
@@ -269,14 +269,14 @@ let cfg = config.nix-dabei; in
 
     # Synchronize time using NTP to prevent clock skew that could interfere
     # with date & time sensitive operations like certificate verification.
-    (lib.mkIf cfg.ntpSync.enable {
+    (lib.mkIf cfg.ntp.enable {
       boot.initrd.systemd = {
         extraBin = {
           hwclock = "${pkgs.util-linux}/bin/hwclock";
           ntpdate = "${pkgs.ntp}/bin/ntpdate";
         };
         services.ntpdate-timesync = let
-          ntpServersAsString = lib.concatStringsSep " " cfg.ntpSync.servers;
+          ntpServersAsString = lib.concatStringsSep " " cfg.ntp.servers;
         in {
           requires = [ "initrd-fs.target" "network-online.target"];
           requiredBy = [ "auto-installer.service" ];
@@ -286,7 +286,7 @@ let cfg = config.nix-dabei; in
           serviceConfig.Type = "oneshot";
           script = ''
             ntpdate -b ${ntpServersAsString}
-            ${lib.optionalString cfg.ntpSync.updateHwClock "hwclock --systohc"}
+            ${lib.optionalString cfg.ntp.update-hardware-clock "hwclock --systohc"}
         '';
         };
       };
