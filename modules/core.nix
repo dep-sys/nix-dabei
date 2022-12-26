@@ -29,11 +29,6 @@ let cfg = config.nix-dabei; in
       default = true;
     };
 
-    auto-install.enable = mkOption {
-      description = "enable auto installer, see README";
-      type = types.bool;
-      default = true;
-    };
     ntpSync = {
       enable = mkOption {
         description = "Enable NTP sync during kexec image startup.";
@@ -61,15 +56,6 @@ let cfg = config.nix-dabei; in
   };
 
   config = lib.mkMerge [
-    (lib.mkIf (lib.any (fs: fs == "vfat") config.boot.initrd.supportedFilesystems) {
-      boot.initrd.kernelModules = [ "vfat" "nls_cp437" "nls_iso8859-1" ];
-    })
-
-    (lib.mkIf cfg.zfs.enable {
-      boot.kernelPackages = pkgs.zfs.latestCompatibleLinuxPackages;
-      boot.initrd.supportedFilesystems = [ "zfs" ];
-    })
-
     {
       documentation.enable = false;
       time.timeZone = "UTC";
@@ -179,6 +165,15 @@ let cfg = config.nix-dabei; in
         };
       };
     }
+
+    (lib.mkIf (lib.any (fs: fs == "vfat") config.boot.initrd.supportedFilesystems) {
+      boot.initrd.kernelModules = [ "vfat" "nls_cp437" "nls_iso8859-1" ];
+    })
+
+    (lib.mkIf cfg.zfs.enable {
+      boot.kernelPackages = pkgs.zfs.latestCompatibleLinuxPackages;
+      boot.initrd.supportedFilesystems = [ "zfs" ];
+    })
 
     (lib.mkIf cfg.ssh.enable {
       boot.initrd = {
