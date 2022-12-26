@@ -1,26 +1,5 @@
 {
   "nodes": {
-    "disko": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1670283933,
-        "narHash": "sha256-ZHLBzJr9ECprzEKaSvAvTGdsb/O/GN340MTafeyFOGM=",
-        "owner": "phaer",
-        "repo": "disko",
-        "rev": "ee67d1695fe80c304b2741609fda2f086b9ff5c5",
-        "type": "github"
-      },
-      "original": {
-        "owner": "phaer",
-        "ref": "allow-variables",
-        "repo": "disko",
-        "type": "github"
-      }
-    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1670263530,
@@ -39,7 +18,6 @@
     },
     "root": {
       "inputs": {
-        "disko": "disko",
         "nixpkgs": "nixpkgs"
       }
     }
