@@ -185,6 +185,15 @@ let cfg = config.nix-dabei; in
         systemd = {
           extraBin = {
             ssh-keygen = "${config.programs.ssh.package}/bin/ssh-keygen";
+            get-kernel-param = pkgs.writeScript "get-kernel-param" ''
+              for o in $(< /proc/cmdline); do
+                  case $o in
+                      $1=*)
+                          echo "''${o#"$1="}"
+                          ;;
+                  esac
+              done
+            '';
           };
 
           services = {
