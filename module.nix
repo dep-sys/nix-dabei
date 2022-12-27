@@ -154,8 +154,10 @@ let cfg = config.nix-dabei; in
               nixos-enter = "${pkgs.nixos-install-tools}/bin/nixos-enter";
               unshare = "${pkgs.util-linux}/bin/unshare";
 
-              # debugging
-              ip = "${pkgs.iproute2}/bin/ip";
+              # partitioning
+              lsblk = "${pkgs.util-linux}/bin/lsblk";
+              findmnt = "${pkgs.util-linux}/bin/findmnt";
+              parted = "${pkgs.parted}/bin/parted";
            };
 
             # When these are enabled, they prevent useful output from
