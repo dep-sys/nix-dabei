@@ -50,14 +50,7 @@ with lib;
 
           # We will kexec in background so we can cleanly finish the script before the hosts go down.
           # This makes integration with tools like terraform easier.
-          nohup bash & << EOF
-            sleep 2
-            if systemctl --version >/dev/null 2>&1; then
-              systemctl kexec
-            else
-              ''${SCRIPT_DIR}/kexec --exec
-            fi
-          EOF
+          nohup bash -c "sleep 6; if systemctl --version >/dev/null 2>&1; then systemctl kexec; else ''${SCRIPT_DIR}/kexec --exec; fi" &
        '';
     in {
         system.build.kexec =
