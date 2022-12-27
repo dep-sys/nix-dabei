@@ -67,6 +67,16 @@ with lib;
                 { name = "run"; path = kexecScript; }
                 { name = "kexec"; path = kexec; }
             ];
+
+        system.build.kexecTarball = pkgs.runCommand "kexec-tarball" {} ''
+          mkdir kexec $out
+          cp "${initrd}" kexec/initrd
+          cp "${kernel}" kexec/bzImage
+          cp "${kexecScript}" kexec/run
+          cp "${kexec}" kexec/kexec
+          tar -czvf $out/nixos-kexec-installer-${pkgs.stdenv.hostPlatform.system}.tar.gz kexec
+        '';
+
         system.build.vm = pkgs.writeShellScriptBin "installer-vm" ''
           set -euo pipefail
           test -f disk.img || ${pkgs.qemu_kvm}/bin/qemu-img create -f qcow2 disk.img 10G

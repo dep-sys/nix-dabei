@@ -17,6 +17,7 @@
           {
             inherit (config.system.build)
               kexec
+              kexecTarball
               vm;
             default = config.system.build.kexec;
           };
