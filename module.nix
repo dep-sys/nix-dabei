@@ -182,65 +182,6 @@ let cfg = config.nix-dabei; in
           authorizedKeys = config.users.users.root.openssh.authorizedKeys.keys;
           port = 22;
         };
-        systemd = {
-          extraBin = {
-            ssh-keygen = "${config.programs.ssh.package}/bin/ssh-keygen";
-            get-kernel-param = pkgs.writeScript "get-kernel-param" ''
-              for o in $(< /proc/cmdline); do
-                  case $o in
-                      $1=*)
-                          echo "''${o#"$1="}"
-                          ;;
-                  esac
-              done
-            '';
-          };
-
-          services = {
-            setup-ssh-authorized-keys = {
-              requires = ["initrd-fs.target"];
-              after = ["initrd-fs.target"];
-              requiredBy = [ "sshd.service" ];
-              before = [ "sshd.service" ];
-              unitConfig.DefaultDependencies = false;
-              serviceConfig.Type = "oneshot";
-              script = ''
-                  mkdir -p /etc/ssh/authorized_keys.d
-                  param="$(get-kernel-param "ssh_authorized_key")"
-                  if [ -n "$param" ]; then
-                     umask 177
-                     (echo -e "\n"; echo "$param" | base64 -d) >> /etc/ssh/authorized_keys.d/root
-                     cat /etc/ssh/authorized_keys.d/root
-                     echo "Using ssh authorized key from kernel parameter"
-                  fi
-              '';
-            };
-
-            generate-ssh-host-key = {
-              requires = ["initrd-fs.target"];
-              after = ["initrd-fs.target"];
-              requiredBy = [ "sshd.service" ];
-              before = [ "sshd.service" ];
-              unitConfig.DefaultDependencies = false;
-              serviceConfig.Type = "oneshot";
-              script = ''
-                  mkdir -p /etc/ssh/
-
-                  param="$(get-kernel-param "ssh_host_key")"
-                  if [ -n "$param" ]; then
-                     umask 177
-                     echo "$param" | base64 -d > /etc/ssh/ssh_host_ed25519_key
-                     ssh-keygen -y -f /etc/ssh/ssh_host_ed25519_key > /etc/ssh/ssh_host_ed25519_key.pub
-                     echo "Using ssh host key from kernel parameter"
-                  fi
-                  if [ ! -f /etc/ssh/ssh_host_ed25519_key ]; then
-                     ssh-keygen -f /etc/ssh/ssh_host_ed25519_key -t ed25519 -N ""
-                     echo "Generated new ssh host key"
-                  fi
-              '';
-            };
-          };
-        };
       };
     })
 
