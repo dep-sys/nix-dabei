@@ -152,6 +152,7 @@ let cfg = config.nix-dabei; in
               nix-env = "${pkgs.nixStatic}/bin/nix-env";
               busybox = "${pkgs.busybox-sandbox-shell}/bin/busybox";
               nixos-enter = "${pkgs.nixos-install-tools}/bin/nixos-enter";
+              nixos-install = "${pkgs.nixos-install-tools}/bin/nixos-install";
               unshare = "${pkgs.util-linux}/bin/unshare";
 
               # partitioning
