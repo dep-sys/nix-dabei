@@ -144,6 +144,7 @@ let cfg = config.nix-dabei; in
               "${pkgs.bash}"
             ];
 
+            contents."/usr/bin/env".source = "${pkgs.coreutils}/bin/env";
             extraBin = {
               # nix & installer
               nix = "${pkgs.nixStatic}/bin/nix";
@@ -201,7 +202,7 @@ let cfg = config.nix-dabei; in
         script = ''
           root_fs_type="$(mount|awk '$3 == "/" { print $1 }')"
           if [ "$root_fs_type" != "tmpfs" ]; then
-              cp -R /bin /etc  /init  /lib  /nix  /root  /sbin  /var /sysroot
+              cp -R /bin /etc  /init /usr /lib  /nix  /root  /sbin  /var /sysroot
               systemctl --no-block switch-root /sysroot /bin/init
           fi
       '';
