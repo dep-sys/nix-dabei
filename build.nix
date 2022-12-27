@@ -64,7 +64,7 @@ with lib;
             pkgs.linkFarm "kexec" [
                 { name = "initrd"; path = initrd; }
                 { name = "bzImage"; path = kernel; }
-                { name = "kexec-boot"; path = kexecScript; }
+                { name = "run"; path = kexecScript; }
                 { name = "kexec"; path = kexec; }
             ];
         system.build.vm = pkgs.writeShellScriptBin "installer-vm" ''
