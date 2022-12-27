@@ -14,20 +14,20 @@ with lib;
           INITRD_TMP=$(TMPDIR=$SCRIPT_DIR mktemp -d)
           cd "$INITRD_TMP"
           pwd
-          mkdir -p initrd/ssh
+          mkdir -p initrd/etc/ssh/authorized_keys.d
           pushd initrd
           for key in /root/.ssh/authorized_keys /root/.ssh/authorized_keys2; do
             if [ -e "$key" ]; then
               # workaround for debian shenanigans
-              grep -o '\(ssh-[^ ]* .*\)' "$key" >> ssh/authorized_keys
+              grep -o '\(ssh-[^ ]* .*\)' "$key" >> etc/ssh/authorized_keys.d/root
             fi
           done
           # Typically for NixOS
           if [ -e /etc/ssh/authorized_keys.d/root ]; then
-            cat /etc/ssh/authorized_keys.d/root >> ssh/authorized_keys
+            cat /etc/ssh/authorized_keys.d/root >> etc/ssh/authorized_keys.d/root
           fi
           for p in /etc/ssh/ssh_host_*; do
-            cp -a "$p" ssh
+            cp -a "$p" etc/ssh/
           done
           find | cpio -o -H newc | gzip -9 > ../extra.gz
           popd
