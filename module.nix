@@ -155,6 +155,7 @@ let cfg = config.nix-dabei; in
               nixos-install = "${pkgs.nixos-install-tools}/bin/nixos-install";
               unshare = "${pkgs.util-linux}/bin/unshare";
 
+              rsync = "${pkgs.rsync}/bin/rsync";
               # partitioning
               lsblk = "${pkgs.util-linux}/bin/lsblk";
               findmnt = "${pkgs.util-linux}/bin/findmnt";
