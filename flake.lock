@@ -2,16 +2,16 @@
   "nodes": {
     "nixpkgs": {
       "locked": {
-        "lastModified": 1670263530,
-        "narHash": "sha256-e02SQGQcKxgyJlV0HWE9MBWIyjJX1spxcwYb/2RumZ4=",
-        "owner": "phaer",
+        "lastModified": 1672241162,
+        "narHash": "sha256-bUnJWILClC8Gzt6Nd2/hSzghpqGX9QdjahYeUGNXFhI=",
+        "owner": "ElvishJerricco",
         "repo": "nixpkgs",
-        "rev": "08dd346b3f7a3975a49fde10cb57fba523d856e9",
+        "rev": "9d78bdb028dd459aa87e181eaf5c85dc4ce26f9b",
         "type": "github"
       },
       "original": {
-        "owner": "phaer",
-        "ref": "nix-dabei",
+        "owner": "ElvishJerricco",
+        "ref": "systemd-stage-1-networkd",
         "repo": "nixpkgs",
         "type": "github"
       }

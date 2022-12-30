@@ -1,9 +1,8 @@
 {
   description = "A minimal initrd, capable of running sshd and nix.";
-  # this is a temporary fork including the changes from
   # https://github.com/NixOS/nixpkgs/pull/169116/files
-  # (rebased on master from time to time)
-  inputs.nixpkgs.url = "github:phaer/nixpkgs/nix-dabei";
+  inputs.nixpkgs.url = "github:ElvishJerricco/nixpkgs/systemd-stage-1-networkd";
+
   outputs = { self, nixpkgs }:
     let
       system = "x86_64-linux";
