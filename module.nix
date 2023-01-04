@@ -24,6 +24,12 @@ let cfg = config.nix-dabei; in
       default = true;
     };
 
+    restore-network.enable = mkOption {
+      description = "try to restore ips and routes after kexecing";
+      type = types.bool;
+      default = true;
+    };
+
     stay-in-stage-1 = mkOption {
       description = "disable switching to stage-2 so sshd keeps running until reboot";
       type = types.bool;
@@ -283,6 +289,38 @@ let cfg = config.nix-dabei; in
         };
       };
     })
+
+    (lib.mkIf cfg.restore-network.enable {
+      boot.initrd.systemd =
+        let
+          restoreNetwork = pkgs.writers.writePython3 "restore-network" {
+            flakeIgnore = ["E501"];
+          } ./restore_routes.py;
+        in {
+          storePaths = [
+            restoreNetwork
+          ];
+          services.restoreNetwork = {
+            before = [ "network-pre.target" ];
+            wants = [ "network-pre.target" ];
+            wantedBy = [ "initrd.target" ];
+            serviceConfig = {
+              Type = "oneshot";
+              RemainAfterExit = true;
+              ExecStart = [
+                "${restoreNetwork} /root/network/addrs.json /root/network/routes-v4.json /root/network/routes-v6.json /etc/systemd/network"
+              ];
+            };
+            unitConfig.DefaultDependencies = false;
+            unitConfig.ConditionPathExists = [
+              "/root/network/addrs.json"
+              "/root/network/routes-v4.json"
+              "/root/network/routes-v6.json"
+            ];
+          };
+      };
+    })
+
 
   ];
 }

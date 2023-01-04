@@ -7,9 +7,12 @@ with lib;
         kernel = "${config.system.build.kernel}/${kernelFile}";
         initrd = "${config.system.build.initialRamdisk}/initrd";
         kexec = "${pkgs.pkgsStatic.kexec-tools}/bin/kexec";
+        iprouteStatic = pkgs.pkgsStatic.iproute2.override { iptables = null; };
+        iproute = "${iprouteStatic}/bin/ip";
         kexecScript = pkgs.writeScript "kexec-boot" ''
           #!/usr/bin/env bash
           SCRIPT_DIR=$( cd -- "$( dirname -- "''${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
           # INITRD_TMP / extra.gz logic taken from https://github.com/nix-community/nixos-images/blob/main/nix/kexec-installer/module.nix
           INITRD_TMP=$(TMPDIR=$SCRIPT_DIR mktemp -d)
           cd "$INITRD_TMP"
@@ -29,6 +32,15 @@ with lib;
           for p in /etc/ssh/ssh_host_*; do
             cp -a "$p" etc/ssh/
           done
+          # save the networking config for later use
+          if type -p ip &>/dev/null; then
+            "$SCRIPT_DIR/ip" --json addr > addrs.json
+            "$SCRIPT_DIR/ip" -4 --json route > routes-v4.json
+            "$SCRIPT_DIR/ip" -6 --json route > routes-v6.json
+          else
+            echo "Skip saving static network addresses because no iproute2 binary is available." 2>&1
+            echo "The image can depends only on DHCP to get network after reboot!" 2>&1
+          fi
           find | cpio -o -H newc | gzip -9 > ../extra.gz
           popd
           cat extra.gz >> "''${SCRIPT_DIR}/initrd"
@@ -59,6 +71,7 @@ with lib;
                 { name = "bzImage"; path = kernel; }
                 { name = "run"; path = kexecScript; }
                 { name = "kexec"; path = kexec; }
+                { name = "ip"; path = "${iprouteStatic}/bin/ip"; }
             ];
 
         system.build.kexecTarball = pkgs.runCommand "kexec-tarball" {} ''
@@ -67,6 +80,7 @@ with lib;
           cp "${kernel}" kexec/bzImage
           cp "${kexecScript}" kexec/run
           cp "${kexec}" kexec/kexec
+          cp "${iproute}" kexec/ip
           tar -czvf $out/nixos-kexec-installer-${pkgs.stdenv.hostPlatform.system}.tar.gz kexec
         '';
 
