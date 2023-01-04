@@ -18,6 +18,12 @@ let cfg = config.nix-dabei; in
       default = false;
     };
 
+    python.enable = mkOption {
+      description = "add a python environment";
+      type = types.bool;
+      default = true;
+    };
+
     stay-in-stage-1 = mkOption {
       description = "disable switching to stage-2 so sshd keeps running until reboot";
       type = types.bool;
@@ -264,5 +270,19 @@ let cfg = config.nix-dabei; in
         };
       };
     })
+    (lib.mkIf cfg.python.enable {
+      boot.initrd.systemd =
+        let
+          python = pkgs.python3Minimal; #.withPackages (p: [ p.requests ]);
+        in {
+        storePaths = [
+          python
+        ];
+        extraBin = {
+              python = "${python}/bin/python";
+        };
+      };
+    })
+
   ];
 }
