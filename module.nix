@@ -1,7 +1,7 @@
 { config, pkgs, lib, ... }:
-let cfg = config.nix-dabei; in
+let cfg = config.nixDabei; in
 {
-  options.nix-dabei = with lib; {
+  options.nixDabei = with lib; {
     zfs.enable = mkOption {
       description = "enable ZFS";
       type = types.bool;
@@ -12,7 +12,7 @@ let cfg = config.nix-dabei; in
       type = types.bool;
       default = true;
     };
-    tty-shell.enable = mkOption {
+    ttyShell.enable = mkOption {
       description = "enable shell on tty1";
       type = types.bool;
       default = false;
@@ -24,18 +24,18 @@ let cfg = config.nix-dabei; in
       default = true;
     };
 
-    restore-network.enable = mkOption {
+    restoreNetwork.enable = mkOption {
       description = "try to restore ips and routes after kexecing";
       type = types.bool;
       default = true;
     };
 
-    stay-in-stage-1 = mkOption {
+    stayInStage1 = mkOption {
       description = "disable switching to stage-2 so sshd keeps running until reboot";
       type = types.bool;
       default = true;
     };
-    remount-root = mkOption {
+    remountRoot = mkOption {
       description = "remount / on tmpfs to allow pivot_root syscalls";
       type = types.bool;
       default = true;
@@ -47,9 +47,9 @@ let cfg = config.nix-dabei; in
         type = types.bool;
         default = true;
       };
-      update-hardware-clock = mkOption {
+      updateHadwareClock = mkOption {
         description = ''
-          NTPdate only synchronizes the software clock. If 'update-hardware-clock' is
+          NTPdate only synchronizes the software clock. If 'updateHadwareClock' is
           true, the synchronized time will also be written to the hardware clock.
           Disabled per default as it might produce unwanted side-effects on
           virtualized hardware clocks in VMs.
@@ -202,12 +202,12 @@ let cfg = config.nix-dabei; in
       };
     })
 
-    (lib.mkIf cfg.remount-root {
+    (lib.mkIf cfg.remountRoot {
       # move everything in / to /sysroot and switch-root into
       # it. This runs a few things twice and wastes some memory
       # but is necessary for nix --store flag as pivot_root does
       # not work on rootfs.
-      boot.initrd.systemd.services.remount-root = {
+      boot.initrd.systemd.services.remountRoot = {
         requires = [ "systemd-udevd.service" "initrd-root-fs.target"];
         after = [ "systemd-udevd.service"];
         requiredBy = [ "initrd-fs.target" ];
@@ -225,7 +225,7 @@ let cfg = config.nix-dabei; in
       };
     })
 
-    (lib.mkIf cfg.stay-in-stage-1 {
+    (lib.mkIf cfg.stayInStage1 {
       boot.initrd.systemd.services = {
         initrd-switch-root.enable = false;
         initrd-cleanup.enable = false;
@@ -242,7 +242,7 @@ let cfg = config.nix-dabei; in
           hwclock = "${pkgs.util-linux}/bin/hwclock";
           ntpdate = "${pkgs.ntp}/bin/ntpdate";
         };
-        services.ntpdate-timesync = let
+        services.ntp = let
           ntpServersAsString = lib.concatStringsSep " " cfg.ntp.servers;
         in {
           requires = [ "initrd-fs.target" "network-online.target"];
@@ -253,18 +253,18 @@ let cfg = config.nix-dabei; in
           serviceConfig.Type = "oneshot";
           script = ''
             ntpdate -b ${ntpServersAsString}
-            ${lib.optionalString cfg.ntp.update-hardware-clock "hwclock --systohc"}
+            ${lib.optionalString cfg.ntp.updateHadwareClock "hwclock --systohc"}
         '';
         };
       };
     })
 
-    (lib.mkIf cfg.tty-shell.enable {
+    (lib.mkIf cfg.ttyShell.enable {
       boot.initrd.systemd = {
         extraBin = {
               setsid = "${pkgs.util-linux}/bin/setsid";
         };
-        services.tty-shell = {
+        services.ttyShell = {
           requiredBy = [ "initrd.target" ];
           conflicts = [ "shutdown.target" ];
           unitConfig.DefaultDependencies = false;
@@ -290,10 +290,10 @@ let cfg = config.nix-dabei; in
       };
     })
 
-    (lib.mkIf cfg.restore-network.enable {
+    (lib.mkIf cfg.restoreNetwork.enable {
       boot.initrd.systemd =
         let
-          restoreNetwork = pkgs.writers.writePython3 "restore-network" {
+          restoreNetwork = pkgs.writers.writePython3 "restore_network" {
             flakeIgnore = ["E501"];
           } ./restore_routes.py;
         in {
