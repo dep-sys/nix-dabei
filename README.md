@@ -4,9 +4,7 @@ An **experimental** operating system generator based on [NixOS][nixos].
 
 It generates a relatively small linux kernel and an initial ramdisk - all together ~40MB zstd-compressed at time of writing - that can either be booted conventionally or kexec'ed into from a running system. This can be useful for a variety of tasks, especially rescue systems and installers.
 
-The current implementation focuses on the latter, and allows users to bootstrap NixOS on a remote machine via SSH only while still being able to use a nixos kernel, all its filesystem support and userland features during installation.
-
-It's in development but already somewhat useable to deploy NixOS remotely with ZFS via kexec. Documentation is still lacking though as tradition demands.
+The current implementation focuses on being an alternative kexec bundle for [nixos-remote](https://github.com/numtide/nixos-remote). You use the tar.gz from [the latest release](https://github.com/dep-sys/nix-dabei/release) with `nixos-remote --kexec $nix-dabei.tar.gz`. As it's less than 10% in size compared to the [default image](https://github.com/nix-community/nixos-images/tree/main/nix/kexec-installer), downloading it on the target host will be faster and kexec should work on hosts with less than 1GB of RAM. 
 
 There's a binary cache at [cachix: nix-dabei](https://app.cachix.org/cache/nix-dabei).
 
@@ -38,45 +36,6 @@ chmod go-rwx fixtures/id_*
 
 ssh -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null -p 2222 -i fixtures/id_ed25519 root@localhost
 ```
-
-## Run it on a real host
-
-``` sh
-# build a kexec bundle
-kexec="$(nix build .#kexec --json| jq -r '.[].outputs.out')"
-
-# copy it to your $TARGET_SERVER
-rsync \
-    -Lavz \
-    --info=progress2 \
-    "${kexec}/" \
-    root@$TARGET_SERVER:
-# use the bundled script to switch into the initrd 
-ssh root@$TARGET_SERVER "./kexec-boot flake_url=github:phaer/test-flake#nixosConfigurations.web-01"
-```
-
-
-# Differences and Similarities
-
-## Compared to `system.build.netbootRamdisk`
-
-My [first experiment][nixos-zfs-installer] used `system.build.netbootRamdisk` from nixpkgs. This worked well enough and I learned *a lot* about nix, but the resulting images ended up really large which made uploads to new systems tedious. As they are loaded into memory, bigger images also makes it impossible to run them on systems with little memory. 
-
-## Compared to [not-os][]
-
-My [second iteration][nix-dabei-not-os] was build upon `not-os`, which is a fantastic project that did the hard work of extracting a minimal set of nixos modules and further reducing its size by replacing systemd with runit.
-
-This worked well enough, but then [systemd-in-stage1][] landed in nixos, simplifying the boot process and tempting me to see whether I could build something similar as `not-os` while staying closer to upstream NixOS.
-
-## Compared to [nix-infect][]
-
-`nix-infect` is another great project which allows users to install NixOS on remote systems. It's implemented as a shell script which bootstraps nix and installs nixos on an ext4 file system.
-While this works as long as you are happy with ext4, `kexec`uting, like `nix-dabei` does, allows us to partition filesystems with the same kernel and tools as in the new NixOS system to be installed. 
-
-## Compared to (official) ISO images
-
-Official ISO images are great for interactive installations, but don't enable SSH access by default. You can build custom ones for your setup but depending on your provider getting those to boot can be somewhat more involved than `kexec`.
-
 
 [flakes]: https://nixos.wiki/wiki/Flakes
 [zfs]: http://openzfs.org/
