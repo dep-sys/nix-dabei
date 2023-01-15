@@ -69,6 +69,7 @@ let cfg = config.nixDabei; in
 
   config = lib.mkMerge [
     {
+      system.nixos.variant_id = lib.mkDefault "installer";
       documentation.enable = false;
       time.timeZone = "UTC";
       i18n.defaultLocale = "en_US.UTF-8";
