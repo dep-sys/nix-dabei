@@ -69,7 +69,6 @@ let cfg = config.nixDabei; in
 
   config = lib.mkMerge [
     {
-      system.nixos.variant_id = lib.mkDefault "installer";
       documentation.enable = false;
       time.timeZone = "UTC";
       i18n.defaultLocale = "en_US.UTF-8";
@@ -137,6 +136,9 @@ let cfg = config.nixDabei; in
               root:x:0:
               nogroup:x:65534:
             '';
+            # Add /etc/os-release + "backport" system.nixos.variant_id to get recognized as an installer
+            # by nixos-remote
+            "os-release".text = config.environment.etc.os-release.text + "\nVARIANT_ID=\"installer\"";
           };
 
           systemd = {
