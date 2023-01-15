@@ -221,7 +221,8 @@ let cfg = config.nixDabei; in
         script = ''
           root_fs_type="$(mount|awk '$3 == "/" { print $1 }')"
           if [ "$root_fs_type" != "tmpfs" ]; then
-              cp -R /bin /etc  /init /usr /lib  /nix  /root  /sbin  /var /sysroot
+              cp -R /init /bin /etc /usr /lib /nix /root  /sbin  /var /sysroot
+              mkdir -p /sysroot/tmp
               systemctl --no-block switch-root /sysroot /bin/init
           fi
       '';
