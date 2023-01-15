@@ -1,45 +1,23 @@
 {
   "nodes": {
-    "disko": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1670283933,
-        "narHash": "sha256-ZHLBzJr9ECprzEKaSvAvTGdsb/O/GN340MTafeyFOGM=",
-        "owner": "phaer",
-        "repo": "disko",
-        "rev": "ee67d1695fe80c304b2741609fda2f086b9ff5c5",
-        "type": "github"
-      },
-      "original": {
-        "owner": "phaer",
-        "ref": "allow-variables",
-        "repo": "disko",
-        "type": "github"
-      }
-    },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1670263530,
-        "narHash": "sha256-e02SQGQcKxgyJlV0HWE9MBWIyjJX1spxcwYb/2RumZ4=",
-        "owner": "phaer",
+        "lastModified": 1672596001,
+        "narHash": "sha256-xW7VO0uAjccAhHevHl+6vutHFfXulvqcwljgXw5YOog=",
+        "owner": "ElvishJerricco",
         "repo": "nixpkgs",
-        "rev": "08dd346b3f7a3975a49fde10cb57fba523d856e9",
+        "rev": "85012bad1127399d26b689861f50b8ddee4cbf17",
         "type": "github"
       },
       "original": {
-        "owner": "phaer",
-        "ref": "nix-dabei",
+        "owner": "ElvishJerricco",
+        "ref": "systemd-stage-1-networkd",
         "repo": "nixpkgs",
         "type": "github"
       }
     },
     "root": {
       "inputs": {
-        "disko": "disko",
         "nixpkgs": "nixpkgs"
       }
     }

@@ -1,7 +1,7 @@
 { config, pkgs, lib, ... }:
-let cfg = config.nix-dabei; in
+let cfg = config.nixDabei; in
 {
-  options.nix-dabei = with lib; {
+  options.nixDabei = with lib; {
     zfs.enable = mkOption {
       description = "enable ZFS";
       type = types.bool;
@@ -12,37 +12,44 @@ let cfg = config.nix-dabei; in
       type = types.bool;
       default = true;
     };
-    tty-shell.enable = mkOption {
+    ttyShell.enable = mkOption {
       description = "enable shell on tty1";
       type = types.bool;
       default = false;
     };
 
-    stay-in-stage-1 = mkOption {
+    python.enable = mkOption {
+      description = "add a python environment";
+      type = types.bool;
+      default = true;
+    };
+
+    restoreNetwork.enable = mkOption {
+      description = "try to restore ips and routes after kexecing";
+      type = types.bool;
+      default = true;
+    };
+
+    stayInStage1 = mkOption {
       description = "disable switching to stage-2 so sshd keeps running until reboot";
       type = types.bool;
       default = true;
     };
-    remount-root = mkOption {
+    remountRoot = mkOption {
       description = "remount / on tmpfs to allow pivot_root syscalls";
       type = types.bool;
       default = true;
     };
 
-    auto-install.enable = mkOption {
-      description = "enable auto installer, see README";
-      type = types.bool;
-      default = true;
-    };
-    ntpSync = {
+    ntp = {
       enable = mkOption {
         description = "Enable NTP sync during kexec image startup.";
         type = types.bool;
         default = true;
       };
-      updateHwClock = mkOption {
+      updateHadwareClock = mkOption {
         description = ''
-          NTPdate only synchronizes the software clock. If 'updateHwClock' is
+          NTPdate only synchronizes the software clock. If 'updateHadwareClock' is
           true, the synchronized time will also be written to the hardware clock.
           Disabled per default as it might produce unwanted side-effects on
           virtualized hardware clocks in VMs.
@@ -61,15 +68,6 @@ let cfg = config.nix-dabei; in
   };
 
   config = lib.mkMerge [
-    (lib.mkIf (lib.any (fs: fs == "vfat") config.boot.initrd.supportedFilesystems) {
-      boot.initrd.kernelModules = [ "vfat" "nls_cp437" "nls_iso8859-1" ];
-    })
-
-    (lib.mkIf cfg.zfs.enable {
-      boot.kernelPackages = pkgs.zfs.latestCompatibleLinuxPackages;
-      boot.initrd.supportedFilesystems = [ "zfs" ];
-    })
-
     {
       documentation.enable = false;
       time.timeZone = "UTC";
@@ -138,6 +136,9 @@ let cfg = config.nix-dabei; in
               root:x:0:
               nogroup:x:65534:
             '';
+            # Add /etc/os-release + "backport" system.nixos.variant_id to get recognized as an installer
+            # by nixos-remote
+            "os-release".text = config.environment.etc.os-release.text + "\nVARIANT_ID=\"installer\"";
           };
 
           systemd = {
@@ -158,6 +159,7 @@ let cfg = config.nix-dabei; in
               "${pkgs.bash}"
             ];
 
+            contents."/usr/bin/env".source = "${pkgs.coreutils}/bin/env";
             extraBin = {
               # nix & installer
               nix = "${pkgs.nixStatic}/bin/nix";
@@ -165,10 +167,14 @@ let cfg = config.nix-dabei; in
               nix-env = "${pkgs.nixStatic}/bin/nix-env";
               busybox = "${pkgs.busybox-sandbox-shell}/bin/busybox";
               nixos-enter = "${pkgs.nixos-install-tools}/bin/nixos-enter";
+              nixos-install = "${pkgs.nixos-install-tools}/bin/nixos-install";
               unshare = "${pkgs.util-linux}/bin/unshare";
 
-              # debugging
-              ip = "${pkgs.iproute2}/bin/ip";
+              rsync = "${pkgs.rsync}/bin/rsync";
+              # partitioning
+              lsblk = "${pkgs.util-linux}/bin/lsblk";
+              findmnt = "${pkgs.util-linux}/bin/findmnt";
+              parted = "${pkgs.parted}/bin/parted";
            };
 
             # When these are enabled, they prevent useful output from
@@ -180,6 +186,15 @@ let cfg = config.nix-dabei; in
       };
     }
 
+    (lib.mkIf (lib.any (fs: fs == "vfat") config.boot.initrd.supportedFilesystems) {
+      boot.initrd.kernelModules = [ "vfat" "nls_cp437" "nls_iso8859-1" ];
+    })
+
+    (lib.mkIf cfg.zfs.enable {
+      boot.kernelPackages = pkgs.zfs.latestCompatibleLinuxPackages;
+      boot.initrd.supportedFilesystems = [ "zfs" ];
+    })
+
     (lib.mkIf cfg.ssh.enable {
       boot.initrd = {
         network.ssh = {
@@ -187,65 +202,15 @@ let cfg = config.nix-dabei; in
           authorizedKeys = config.users.users.root.openssh.authorizedKeys.keys;
           port = 22;
         };
-        systemd = {
-          extraBin = {
-            ssh-keygen = "${config.programs.ssh.package}/bin/ssh-keygen";
-          };
-
-          services = {
-            setup-ssh-authorized-keys = {
-              requires = ["initrd-fs.target"];
-              after = ["initrd-fs.target"];
-              requiredBy = [ "sshd.service" ];
-              before = [ "sshd.service" ];
-              unitConfig.DefaultDependencies = false;
-              serviceConfig.Type = "oneshot";
-              script = ''
-                  mkdir -p /etc/ssh/authorized_keys.d
-                  param="$(get-kernel-param "ssh_authorized_key")"
-                  if [ -n "$param" ]; then
-                     umask 177
-                     (echo -e "\n"; echo "$param" | base64 -d) >> /etc/ssh/authorized_keys.d/root
-                     cat /etc/ssh/authorized_keys.d/root
-                     echo "Using ssh authorized key from kernel parameter"
-                  fi
-              '';
-            };
-
-            generate-ssh-host-key = {
-              requires = ["initrd-fs.target"];
-              after = ["initrd-fs.target"];
-              requiredBy = [ "sshd.service" ];
-              before = [ "sshd.service" ];
-              unitConfig.DefaultDependencies = false;
-              serviceConfig.Type = "oneshot";
-              script = ''
-                  mkdir -p /etc/ssh/
-
-                  param="$(get-kernel-param "ssh_host_key")"
-                  if [ -n "$param" ]; then
-                     umask 177
-                     echo "$param" | base64 -d > /etc/ssh/ssh_host_ed25519_key
-                     ssh-keygen -y -f /etc/ssh/ssh_host_ed25519_key > /etc/ssh/ssh_host_ed25519_key.pub
-                     echo "Using ssh host key from kernel parameter"
-                  fi
-                  if [ ! -f /etc/ssh/ssh_host_ed25519_key ]; then
-                     ssh-keygen -f /etc/ssh/ssh_host_ed25519_key -t ed25519 -N ""
-                     echo "Generated new ssh host key"
-                  fi
-              '';
-            };
-          };
-        };
       };
     })
 
-    (lib.mkIf cfg.remount-root {
+    (lib.mkIf cfg.remountRoot {
       # move everything in / to /sysroot and switch-root into
       # it. This runs a few things twice and wastes some memory
       # but is necessary for nix --store flag as pivot_root does
       # not work on rootfs.
-      boot.initrd.systemd.services.remount-root = {
+      boot.initrd.systemd.services.remountRoot = {
         requires = [ "systemd-udevd.service" "initrd-root-fs.target"];
         after = [ "systemd-udevd.service"];
         requiredBy = [ "initrd-fs.target" ];
@@ -256,14 +221,14 @@ let cfg = config.nix-dabei; in
         script = ''
           root_fs_type="$(mount|awk '$3 == "/" { print $1 }')"
           if [ "$root_fs_type" != "tmpfs" ]; then
-              cp -R /bin /etc  /init  /lib  /nix  /root  /sbin  /var /sysroot
+              cp -R /bin /etc  /init /usr /lib  /nix  /root  /sbin  /var /sysroot
               systemctl --no-block switch-root /sysroot /bin/init
           fi
       '';
       };
     })
 
-    (lib.mkIf cfg.stay-in-stage-1 {
+    (lib.mkIf cfg.stayInStage1 {
       boot.initrd.systemd.services = {
         initrd-switch-root.enable = false;
         initrd-cleanup.enable = false;
@@ -274,14 +239,14 @@ let cfg = config.nix-dabei; in
 
     # Synchronize time using NTP to prevent clock skew that could interfere
     # with date & time sensitive operations like certificate verification.
-    (lib.mkIf cfg.ntpSync.enable {
+    (lib.mkIf cfg.ntp.enable {
       boot.initrd.systemd = {
         extraBin = {
           hwclock = "${pkgs.util-linux}/bin/hwclock";
           ntpdate = "${pkgs.ntp}/bin/ntpdate";
         };
-        services.ntpdate-timesync = let
-          ntpServersAsString = lib.concatStringsSep " " cfg.ntpSync.servers;
+        services.ntp = let
+          ntpServersAsString = lib.concatStringsSep " " cfg.ntp.servers;
         in {
           requires = [ "initrd-fs.target" "network-online.target"];
           requiredBy = [ "auto-installer.service" ];
@@ -291,18 +256,18 @@ let cfg = config.nix-dabei; in
           serviceConfig.Type = "oneshot";
           script = ''
             ntpdate -b ${ntpServersAsString}
-            ${lib.optionalString cfg.ntpSync.updateHwClock "hwclock --systohc"}
+            ${lib.optionalString cfg.ntp.updateHadwareClock "hwclock --systohc"}
         '';
         };
       };
     })
 
-    (lib.mkIf cfg.tty-shell.enable {
+    (lib.mkIf cfg.ttyShell.enable {
       boot.initrd.systemd = {
         extraBin = {
               setsid = "${pkgs.util-linux}/bin/setsid";
         };
-        services.tty-shell = {
+        services.ttyShell = {
           requiredBy = [ "initrd.target" ];
           conflicts = [ "shutdown.target" ];
           unitConfig.DefaultDependencies = false;
@@ -314,5 +279,51 @@ let cfg = config.nix-dabei; in
         };
       };
     })
+    (lib.mkIf cfg.python.enable {
+      boot.initrd.systemd =
+        let
+          python = pkgs.python3Minimal; #.withPackages (p: [ p.requests ]);
+        in {
+        storePaths = [
+          python
+        ];
+        extraBin = {
+              python = "${python}/bin/python";
+        };
+      };
+    })
+
+    (lib.mkIf cfg.restoreNetwork.enable {
+      boot.initrd.systemd =
+        let
+          restoreNetwork = pkgs.writers.writePython3 "restore_network" {
+            flakeIgnore = ["E501"];
+          } ./restore_routes.py;
+        in {
+          storePaths = [
+            restoreNetwork
+          ];
+          services.restoreNetwork = {
+            before = [ "network-pre.target" ];
+            wants = [ "network-pre.target" ];
+            wantedBy = [ "initrd.target" ];
+            serviceConfig = {
+              Type = "oneshot";
+              RemainAfterExit = true;
+              ExecStart = [
+                "${restoreNetwork} /root/network/addrs.json /root/network/routes-v4.json /root/network/routes-v6.json /etc/systemd/network"
+              ];
+            };
+            unitConfig.DefaultDependencies = false;
+            unitConfig.ConditionPathExists = [
+              "/root/network/addrs.json"
+              "/root/network/routes-v4.json"
+              "/root/network/routes-v6.json"
+            ];
+          };
+      };
+    })
+
+
   ];
 }
