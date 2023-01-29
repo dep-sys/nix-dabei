@@ -106,7 +106,11 @@ let cfg = config.nixDabei; in
           "systemd.log_level=info"
           "systemd.log_target=console"
           "systemd.journald.forward_to_console=1"
-        ];
+          "console=ttyS0,115200"
+        ] ++
+        (lib.optional (pkgs.stdenv.hostPlatform.isAarch32 || pkgs.stdenv.hostPlatform.isAarch64) "console=ttyAMA0,115200") ++
+        (lib.optional (pkgs.stdenv.hostPlatform.isRiscV) "console=ttySIF0,115200") ++
+        [ "console=tty0" ];
 
         initrd = {
           kernelModules = [
