@@ -184,6 +184,7 @@ let cfg = config.nixDabei; in
               lsblk = "${pkgs.util-linux}/bin/lsblk";
               findmnt = "${pkgs.util-linux}/bin/findmnt";
               parted = "${pkgs.parted}/bin/parted";
+              jq = "${pkgs.jq}/bin/jq";
            };
 
             # When these are enabled, they prevent useful output from
