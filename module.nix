@@ -78,10 +78,6 @@ let cfg = config.nixDabei; in
         # installed systems should have a unique one, tied to hardware. For a live system such
         # as this, it seems sufficient to use a static one.
         hostId = builtins.substring 0 8 (builtins.hashString "sha256" config.networking.hostName);
-        # This switches from traditional network interface names like "eth0" to predictable ones
-        # like enp3s0. While the latter can be harder to predict, it should be stable, while
-        # the former might not be.
-        usePredictableInterfaceNames = false;  # for test framework
       };
       # Nix-dabei isn't intended to keep state, but NixOS wants
       # it defined and it does not hurt. You are still able to
