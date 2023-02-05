@@ -98,11 +98,11 @@ let cfg = config.nixDabei; in
       boot = {
         loader.grub.enable = false;
         kernelParams = [
-         "console=ttyS0,115200"
+          "console=tty0"
+          "console=ttyS0,115200"
         ] ++
         (lib.optional (pkgs.stdenv.hostPlatform.isAarch32 || pkgs.stdenv.hostPlatform.isAarch64) "console=ttyAMA0,115200") ++
-        (lib.optional (pkgs.stdenv.hostPlatform.isRiscV) "console=ttySIF0,115200") ++
-        [ "console=tty0" ];
+        (lib.optional (pkgs.stdenv.hostPlatform.isRiscV) "console=ttySIF0,115200");
 
         initrd = {
           kernelModules = [
