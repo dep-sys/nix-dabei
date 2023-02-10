@@ -32,11 +32,15 @@ with lib;
           for p in /etc/ssh/ssh_host_*; do
             cp -a "$p" etc/ssh/
           done
-          # save the networking config for later use
+
           if type -p ip &>/dev/null; then
+            mkdir -p root/network
+            pushd root/network
+            echo "Saving networking configuration for later use."
             "$SCRIPT_DIR/ip" --json addr > addrs.json
             "$SCRIPT_DIR/ip" -4 --json route > routes-v4.json
             "$SCRIPT_DIR/ip" -6 --json route > routes-v6.json
+            popd
           else
             echo "Skip saving static network addresses because no iproute2 binary is available." 2>&1
             echo "The image can depends only on DHCP to get network after reboot!" 2>&1
