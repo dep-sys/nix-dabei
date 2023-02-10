@@ -45,7 +45,7 @@ let cfg = config.nixDabei; in
       enable = mkOption {
         description = "Enable NTP sync during kexec image startup.";
         type = types.bool;
-        default = true;
+        default = false;
       };
       updateHadwareClock = mkOption {
         description = ''
@@ -266,8 +266,7 @@ let cfg = config.nixDabei; in
           ntpServersAsString = lib.concatStringsSep " " cfg.ntp.servers;
         in {
           requires = [ "initrd-fs.target" "network-online.target"];
-          requiredBy = [ "auto-installer.service" ];
-          before = [ "auto-installer.service" ];
+          requiredBy = [ "initrd.target" ];
           after = [ "initrd-fs.target" "network-online.target"];
           unitConfig.DefaultDependencies = false;
           serviceConfig.Type = "oneshot";
