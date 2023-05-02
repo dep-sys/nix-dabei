@@ -2,18 +2,15 @@
   "nodes": {
     "nixpkgs": {
       "locked": {
-        "lastModified": 1672596001,
-        "narHash": "sha256-xW7VO0uAjccAhHevHl+6vutHFfXulvqcwljgXw5YOog=",
-        "owner": "ElvishJerricco",
-        "repo": "nixpkgs",
-        "rev": "85012bad1127399d26b689861f50b8ddee4cbf17",
-        "type": "github"
+        "lastModified": 1682173319,
+        "narHash": "sha256-tPhOpJJ+wrWIusvGgIB2+x6ILfDkEgQMX0BTtM5vd/4=",
+        "path": "/nix/store/95879m1n0465554x4368zvhhpfgjjksy-source",
+        "rev": "ee7ec1c71adc47d2e3c2d5eb0d6b8fbbd42a8d1c",
+        "type": "path"
       },
       "original": {
-        "owner": "ElvishJerricco",
-        "ref": "systemd-stage-1-networkd",
-        "repo": "nixpkgs",
-        "type": "github"
+        "id": "nixpkgs",
+        "type": "indirect"
       }
     },
     "root": {

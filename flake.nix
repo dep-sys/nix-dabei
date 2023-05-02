@@ -1,8 +1,5 @@
 {
   description = "A minimal initrd, capable of running sshd and nix.";
-  # https://github.com/NixOS/nixpkgs/pull/169116/files
-  inputs.nixpkgs.url = "github:ElvishJerricco/nixpkgs/systemd-stage-1-networkd";
-
   outputs = { self, nixpkgs }:
     let
       system = "x86_64-linux";

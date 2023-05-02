@@ -74,6 +74,7 @@ let cfg = config.nixDabei; in
       i18n.defaultLocale = "en_US.UTF-8";
       networking = {
         hostName = "nix-dabei";
+        usePredictableInterfaceNames = false;
         # hostId is required by NixOS ZFS module, to distinquish systems from each other.
         # installed systems should have a unique one, tied to hardware. For a live system such
         # as this, it seems sufficient to use a static one.
@@ -95,9 +96,42 @@ let cfg = config.nixDabei; in
     }
 
     {
+      environment.etc = {
+        "hostname".text = "${config.networking.hostName}\n";
+        "resolv.conf".text = "nameserver 1.1.1.1\n"; # TODO replace with systemd-resolved upstream
+        "ssl/certs/ca-certificates.crt".source = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
+        "nix/nix.conf".text = ''
+              build-users-group =
+              extra-experimental-features = nix-command flakes
+              # workaround https://github.com/NixOS/nix/issues/5076
+              sandbox = false
+
+              substituters = https://cache.nixos.org https://nix-dabei.cachix.org
+              trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-dabei.cachix.org-1:sDW/xH60rYlBGKzHGFiVvSJpedy+n0CXe6ar3qqUuQk=
+            '';
+        "group".text = ''
+              root:x:0:
+              nogroup:x:65534:
+            '';
+        # Add /etc/os-release + "backport" system.nixos.variant_id to get recognized as an installer
+        # by nixos-remote
+        "os-release".text = config.environment.etc.os-release.text + "\nVARIANT_ID=\"installer\"";
+      };
+
+      systemd = {
+        network.wait-online.anyInterface = true;
+        # Network is configured with kernelParams
+        network.networks = { };
+
+      };
+
       boot = {
         loader.grub.enable = false;
         kernelParams = [
+          "systemd.show_status=true"
+          "systemd.log_level=info"
+          "systemd.log_target=console"
+          "systemd.journald.forward_to_console=1"
           "console=tty0"
           "console=ttyS0,115200"
         ] ++
@@ -134,35 +168,9 @@ let cfg = config.nixDabei; in
           # kernel to load its initrd.
           supportedFilesystems = ["vfat" "ext4"];
 
-          environment.etc = {
-            "hostname".text = "${config.networking.hostName}\n";
-            "resolv.conf".text = "nameserver 1.1.1.1\n"; # TODO replace with systemd-resolved upstream
-            "ssl/certs/ca-certificates.crt".source = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
-            "nix/nix.conf".text = ''
-              build-users-group =
-              extra-experimental-features = nix-command flakes
-              # workaround https://github.com/NixOS/nix/issues/5076
-              sandbox = false
-
-              substituters = https://cache.nixos.org https://nix-dabei.cachix.org
-              trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-dabei.cachix.org-1:sDW/xH60rYlBGKzHGFiVvSJpedy+n0CXe6ar3qqUuQk=
-            '';
-            "group".text = ''
-              root:x:0:
-              nogroup:x:65534:
-            '';
-            # Add /etc/os-release + "backport" system.nixos.variant_id to get recognized as an installer
-            # by nixos-remote
-            "os-release".text = config.environment.etc.os-release.text + "\nVARIANT_ID=\"installer\"";
-          };
-
           systemd = {
             enable = true;
             emergencyAccess = true;
-
-            network.wait-online.anyInterface = true;
-            # Network is configured with kernelParams
-            network.networks = { };
 
             # This is the upstream expression, just with bashInteractive instead of bash.
             initrdBin = let
@@ -185,6 +193,7 @@ let cfg = config.nixDabei; in
               nixos-install = "${pkgs.nixos-install-tools}/bin/nixos-install";
               unshare = "${pkgs.util-linux}/bin/unshare";
 
+              ip = "${pkgs.iproute2}/bin/ip";
               rsync = "${pkgs.rsync}/bin/rsync";
               # partitioning
               lsblk = "${pkgs.util-linux}/bin/lsblk";
@@ -235,6 +244,7 @@ let cfg = config.nixDabei; in
         unitConfig.DefaultDependencies = false;
         serviceConfig.Type = "oneshot";
         script = ''
+          mkdir -p /var
           root_fs_type="$(mount|awk '$3 == "/" { print $1 }')"
           if [ "$root_fs_type" != "tmpfs" ]; then
               cp -R /init /bin /etc /usr /lib /nix /root  /sbin  /var /sysroot
@@ -312,23 +322,30 @@ let cfg = config.nixDabei; in
     (lib.mkIf cfg.restoreNetwork.enable {
       boot.initrd.systemd =
         let
-          restoreNetwork = pkgs.writers.writePython3 "restore_network" {
+          python3MinimalWriter = pkgs.writers.makePythonWriter pkgs.python3Minimal pkgs.python3Minimal.pkgs pkgs.python3Minimal.pkgs;
+          restoreNetworkScript = python3MinimalWriter "restore_network" {
             flakeIgnore = ["E501"];
           } ./restore_routes.py;
         in {
           storePaths = [
-            restoreNetwork
+            restoreNetworkScript
           ];
           services.restoreNetwork = {
-            before = [ "network-pre.target" ];
-            wants = [ "network-pre.target" ];
-            wantedBy = [ "initrd.target" ];
+            requires = [ "initrd-fs.target" ];
+            after= [ "initrd-fs.target" ];
+            requiredBy = [ "initrd.target" ];
+            before = [ "initrd.target" ];
             serviceConfig = {
               Type = "oneshot";
               RemainAfterExit = true;
               ExecStart = [
-                "${restoreNetwork} /root/network/addrs.json /root/network/routes-v4.json /root/network/routes-v6.json /etc/systemd/network"
-              ];
+                "${restoreNetworkScript} /root/network/addrs.json /root/network/routes-v4.json /root/network/routes-v6.json /etc/systemd/network"
+                "/bin/bash -c 'ls /etc/systemd/network'"
+                "/bin/bash -c 'cat /etc/systemd/network/eth0.network'"
+                "/bin/bash -c 'cat /etc/systemd/network/eth1.network'"
+                "/bin/bash -c 'ls -R /etc/ssh'"
+                "/bin/bash -c 'cat /etc/ssh/authorized_keys.d/root'"
+             ];
             };
             unitConfig.DefaultDependencies = false;
             unitConfig.ConditionPathExists = [
