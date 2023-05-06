@@ -15,10 +15,12 @@
     packages = let
       config = self.nixosConfigurations.default.config;
     in {
-      inherit (config.system.build)
+      inherit
+        (config.system.build)
         kexec
         kexecTarball
-        vm;
+        vm
+        ;
       default = config.system.build.kexec;
     };
   };
