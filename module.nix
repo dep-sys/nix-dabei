@@ -74,7 +74,6 @@ let cfg = config.nixDabei; in
       i18n.defaultLocale = "en_US.UTF-8";
       networking = {
         hostName = "nix-dabei";
-        usePredictableInterfaceNames = false;
         # hostId is required by NixOS ZFS module, to distinquish systems from each other.
         # installed systems should have a unique one, tied to hardware. For a live system such
         # as this, it seems sufficient to use a static one.
@@ -118,13 +117,6 @@ let cfg = config.nixDabei; in
         "os-release".text = config.environment.etc.os-release.text + "\nVARIANT_ID=\"installer\"";
       };
 
-      systemd = {
-        network.wait-online.anyInterface = true;
-        # Network is configured with kernelParams
-        network.networks = { };
-
-      };
-
       boot = {
         loader.grub.enable = false;
         kernelParams = [
@@ -159,8 +151,18 @@ let cfg = config.nixDabei; in
             "i8042" "rtc_cmos"
             "bridge" "macvlan" "tap" "tun"
           ];
-          network = {
+          systemd.network = {
             enable = true;
+            wait-online.enable = true;
+            wait-online.anyInterface = true;
+            # Network is configured with kernelParams
+            networks."10-uplink" = {
+              matchConfig = {
+                Virtualization = true;
+                Name = "en* eth*";
+              };
+              networkConfig.DHCP = "ipv4";
+            };
           };
           # Besides the file systems used for installation of our nixos
           # instances, we might need additional ones for kexec to work.

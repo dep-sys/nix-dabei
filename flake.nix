@@ -1,5 +1,6 @@
 {
   description = "A minimal initrd, capable of running sshd and nix.";
+  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
   outputs = { self, nixpkgs }:
     let
       system = "x86_64-linux";
