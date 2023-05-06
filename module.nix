@@ -139,7 +139,7 @@ let cfg = config.nixDabei; in
         (lib.optional (pkgs.stdenv.hostPlatform.isRiscV) "console=ttySIF0,115200");
 
         initrd = {
-          kernelModules = [
+          availableKernelModules = [
             "loop" "overlay" "dm_mod" "squashfs"
             # Intel network for some hetzner dedicated hosts
             "e1000e"
