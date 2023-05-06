@@ -327,7 +327,7 @@ let cfg = config.nixDabei; in
           python3MinimalWriter = pkgs.writers.makePythonWriter pkgs.python3Minimal pkgs.python3Minimal.pkgs pkgs.python3Minimal.pkgs;
           restoreNetworkScript = python3MinimalWriter "restore_network" {
             flakeIgnore = ["E501"];
-          } ./restore_routes.py;
+          } ../../../restore_routes.py;
         in {
           storePaths = [
             restoreNetworkScript
