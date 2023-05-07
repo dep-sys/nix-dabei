@@ -41,13 +41,15 @@
     # This sets up the machine for cross compilation.
     machineForPlatform = hostPlatform:
       self.nixosConfigurations.default.extendModules {
-        modules = [(
-          {
-            nixpkgs.hostPlatform = hostPlatform;
-            nixpkgs.buildPlatform = system;
-            nixpkgs.overlays = [(overlaysForPlatform hostPlatform)];
+        modules = [{
+          nixpkgs = {
+            hostPlatform = hostPlatform;
+            overlays = [(overlaysForPlatform hostPlatform)];
           }
-        )];
+          // (lib.optionalAttrs (system != hostPlatform) {
+            buildPlatform = system;
+          });
+        }];
       };
 
     # get some native artifacts from cache.nixos.org instead of cross building.
@@ -57,12 +59,13 @@
       if ! lib.elem hostPlatform cachedPlatforms
       then {}
       else {
+        jq = nativePkgs.jq;
         nix = nativePkgs.nix;
-        nixos-isntall-tools = nativePkgs.nixos-install-tools;
-        zfs = nativePkgs.zfs;
-        rsync = nativePkgs.rsync;
-        parted = nativePkgs.parted;
+        nixos-install-tools = nativePkgs.nixos-install-tools;
         openssh = nativePkgs.openssh;
+        parted = nativePkgs.parted;
+        rsync = nativePkgs.rsync;
+        zfs = nativePkgs.zfs;
       };
 
   in {

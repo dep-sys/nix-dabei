@@ -285,11 +285,12 @@ in {
             ];
 
             contents."/usr/bin/env".source = "${pkgs.coreutils}/bin/env";
+
             extraBin = {
               # nix & installer
-              nix = "${pkgs.nixStatic}/bin/nix";
-              nix-store = "${pkgs.nixStatic}/bin/nix-store";
-              nix-env = "${pkgs.nixStatic}/bin/nix-env";
+              nix = "${pkgs.nix}/bin/nix";
+              nix-store = "${pkgs.nix}/bin/nix-store";
+              nix-env = "${pkgs.nix}/bin/nix-env";
               busybox = "${pkgs.busybox-sandbox-shell}/bin/busybox";
               nixos-enter = "${pkgs.nixos-install-tools}/bin/nixos-enter";
               nixos-install = "${pkgs.nixos-install-tools}/bin/nixos-install";
