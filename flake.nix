@@ -1,37 +1,26 @@
 {
   description = "A minimal initrd, capable of running sshd and nix.";
-  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
-  outputs = { self, nixpkgs }:
-    let
-      system = "x86_64-linux";
-      pkgs = nixpkgs.legacyPackages.${system};
-    in
-    {
-      packages.${system} =
-        let
-         config = self.nixosConfigurations.default.config;
-        in
-          {
-            inherit (config.system.build)
-              kexec
-              kexecTarball
-              vm;
-            default = config.system.build.kexec;
-          };
-
-      lib.makeInstaller =
-        modules: nixpkgs.lib.nixosSystem {
-          inherit system pkgs;
-          modules = (builtins.attrValues self.nixosModules) ++ modules;
-        };
-
-      nixosConfigurations.default = self.lib.makeInstaller [
-        "${nixpkgs}/nixos/modules/profiles/qemu-guest.nix"
+  inputs = {
+    flake-parts.url = "github:hercules-ci/flake-parts";
+    flake-compat = {
+      url = "github:edolstra/flake-compat";
+      flake = false;
+    };
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
+  };
+  outputs = inputs @ {flake-parts, ...}:
+    flake-parts.lib.mkFlake {inherit inputs;} {
+      systems = [
+        "aarch64-linux"
+        "x86_64-linux"
       ];
 
-      nixosModules = {
-        build = import ./build.nix;
-        module = import ./module.nix;
-      };
+      imports = [
+        ./modules/flake-parts/formatter.nix
+        ./modules/flake-parts/nixosConfigurations
+        ./modules/flake-parts/nixosModules
+        ./modules/flake-parts/packages
+        ./modules/flake-parts/lib
+      ];
     };
 }

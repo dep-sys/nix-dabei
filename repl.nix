@@ -3,10 +3,9 @@ let
   flake = builtins.getFlake (toString ./.);
   nixpkgs = flake.inputs.nixpkgs;
   system = builtins.currentSystem;
-  pkgs = import nixpkgs { inherit system; };
+  pkgs = import nixpkgs {inherit system;};
   lib = pkgs.lib;
-in
-{
+in {
   inherit flake nixpkgs pkgs lib;
   inherit (flake) nixosModules overlay;
   packages = flake.packages.${system};
