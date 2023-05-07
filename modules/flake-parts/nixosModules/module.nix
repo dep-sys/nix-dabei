@@ -207,7 +207,6 @@ in {
             "mptspi"
             "vmxnet3"
             "vsock"
-            "vmw_balloon"
             "vmw_vmci"
             "vmwgfx"
             "vmw_vsock_vmci_transport"
@@ -240,13 +239,17 @@ in {
             "hid_cherry"
             "pcips2"
             "atkbd"
-            "i8042"
-            "rtc_cmos"
             "bridge"
             "macvlan"
             "tap"
             "tun"
-          ];
+          ]
+          # These module lead to build time errors on aarch64-linux
+          ++ (lib.optionals (config.nixpkgs.hostPlatform == "x86_64-linux") [
+            "i8042"
+            "rtc_cmos"
+            "vmw_balloon"
+          ]);
           systemd.network = {
             enable = true;
             wait-online.enable = true;
