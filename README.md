@@ -24,7 +24,7 @@ It **should** work for other cloud providers and environments, such as rasperrry
 ...with a mounted empty disk, which is useful for testing and development:
 
 ```sh
-nix run -L .#installerVM
+nix run -L .#vm
 ```
 (You can kill it by entering `Ctrl-a x`)
 
