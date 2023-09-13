@@ -1,3 +1,10 @@
+# archived
+
+Needs to be updated & could need a clean-up as I started this project when I was still relatively new to the internals of NixOS.
+I likely won't work on this any more as kexec images from https://github.com/nix-community/nixos-images/ got small enough for my own use-cases (machines with 2GB memory).
+Could still be useful for even smaller machines, so feel free to ping me if you got a use-case and want to continue working on it and/or fund other people to do so.
+
+
 # nix-dabei
 
 An **experimental** operating system generator based on [NixOS][nixos].
