@@ -122,6 +122,75 @@ let
       };
     };
   };
+    all-hardware = {
+      hardware.enableRedistributableFirmware = true;
+
+      boot.initrd.availableKernelModules = [
+        # NVMe & SATA/AHCI
+        "nvme" "ahci" "sd_mod" "sr_mod"
+
+        # USB Storage
+        "usb_storage" "uas"
+
+        # MMC/SD Cards
+        "mmc_core" "mmc_block" "sdhci" "sdhci_pci" "sdhci_acpi"
+
+        # Virtualization storage
+        "virtio_blk" "virtio_scsi" "hv_storvsc" "vmw_pvscsi"
+
+        # RAID & Device Mapper
+        "dm_mod" "dm_crypt" "dm_snapshot" "dm_thin_pool"
+        "md_mod" "raid0" "raid1" "raid10" "raid456"
+
+        # Other storage
+        "loop" "nbd"
+
+        # Filesystems
+        "ext4" "btrfs" "xfs" "f2fs" "vfat" "ntfs3"
+        "squashfs" "overlay" "iso9660"
+        "nfs" "cifs" "fuse"
+
+        # USB host controllers
+        "xhci_hcd" "ehci_hcd" "ohci_hcd"
+
+        # Input
+        "usbhid" "hid_generic" "evdev"
+
+        # Intel Ethernet
+        "e1000" "e1000e" "igb" "igc" "ixgbe" "ixgbevf" "i40e" "ice"
+
+        # Realtek Ethernet
+        "r8169"
+
+        # Broadcom Ethernet
+        "tg3" "bnx2" "bnx2x"
+
+        # Other Ethernet
+        "alx" "atl1c" "sky2" "skge" "forcedeth"
+
+        # Virtualization network
+        "virtio_pci" "virtio_net" "hv_netvsc" "vmxnet3"
+
+        # Graphics (basic display)
+        # "i915" "amdgpu" "nouveau" "fbcon" "vesafb" "efifb"
+
+        # Intel Wireless
+        # "iwlwifi" "iwlmvm"
+
+        # Realtek Wireless
+        # "rtw88_pci" "rtw89_pci" "rtl8xxxu"
+
+        # Atheros/Qualcomm Wireless
+        # "ath9k" "ath10k_pci" "ath11k_pci" "ath12k"
+
+        # Broadcom Wireless
+        # "brcmfmac" "brcmsmac"
+
+        # MediaTek Wireless
+        # "mt7921e" "mt76x2e" "mt7915e"
+
+      ];
+    };
 
   nixos = pkgs.nixos {
     imports = [
@@ -131,6 +200,7 @@ let
       modules.debug
       modules.network
       modules.nix
+      modules.all-hardware
     ];
   };
 
