@@ -204,6 +204,35 @@ let
 
     };
 
+    image = {config, pkgs, modulesPath, ...}: {
+      imports = [ "${modulesPath}/image/repart.nix" ];
+      config = {
+        image.repart = {
+          name = "nix-dabei";
+          partitions = {
+            esp =
+              let
+                efiArch = pkgs.stdenv.hostPlatform.efiArch;
+                efiUki = "/EFI/BOOT/BOOT${lib.toUpper efiArch}.EFI";
+              in
+                {
+                  contents = {
+                    "${efiUki}".source = "${config.system.build.uki}/nixos.efi";
+                  };
+
+                  repartConfig = {
+                    Type = "esp";
+                    Label = "boot";
+                    Format = "vfat";
+                    SizeMinBytes = "80M";
+                  };
+                };
+            };
+          };
+        };
+      };
+    };
+
   nixos = pkgs.nixos {
     imports = [
       modules.mini
@@ -214,12 +243,14 @@ let
       modules.nix
       modules.all-hardware
       modules.zfs
+      modules.image
     ];
   };
 
-  inherit (nixos) vm;
+  inherit (nixos) vm uki image;
+
 
 in
- {
-   inherit shell nixos vm pkgs lib;
- }
+  {
+    inherit shell nixos image vm uki pkgs lib;
+  }
