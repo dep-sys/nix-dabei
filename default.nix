@@ -192,6 +192,18 @@ let
       ];
     };
 
+    zfs = {
+      networking.hostId = lib.mkDefault "8425e349";
+      boot.initrd.supportedFilesystems.zfs = true;
+      boot.zfs.package =
+        # https://github.com/nix-community/nixos-images/blob/main/nix/zfs-minimal.nix
+        pkgs.zfsUnstable.override {
+          samba = pkgs.coreutils;
+          python3 = pkgs.python3Minimal;
+        };
+
+    };
+
   nixos = pkgs.nixos {
     imports = [
       modules.mini
@@ -201,6 +213,7 @@ let
       modules.network
       modules.nix
       modules.all-hardware
+      modules.zfs
     ];
   };
 
