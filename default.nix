@@ -5,10 +5,42 @@
 let
   inherit (pkgs) lib;
 
+
+  configure-ssh-key = pkgs.writeShellApplication {
+    name = "configure-ssh-key";
+    runtimeInputs = [
+      pkgs.systemdUkify
+      pkgs.mtools
+      pkgs.coreutils
+      pkgs.util-linux
+    ];
+    text = ''
+      set -x
+      ssh_key="$1"
+      image="nix-dabei.raw"
+      encoded_key="$(cat "$ssh_key" | base64 -w0)"
+
+      addon_efi="$(mktemp)"
+      trap 'rm -f "$addon_efi"' EXIT
+
+      ukify build \
+      --cmdline "systemd.set_credential_binary=ssh.authorized_keys.root:$encoded_key" \
+      --output "$addon_efi"
+
+      esp_offset=$(sfdisk -J "$image" | jq '.partitiontable.partitions[0].start * 512')
+      spec="''${image}@@''${esp_offset}"
+      if ! mdir -i "$spec" ::/EFI/BOOT/BOOTX64.EFI.extra.d/ &>/dev/null; then
+        mmd -i "$spec" ::/EFI/BOOT/BOOTX64.EFI.extra.d
+      fi
+      mcopy -i "$spec" -D o "$addon_efi" ::/EFI/BOOT/BOOTX64.EFI.extra.d/ssh_key.addon.efi
+    '';
+  };
+
   shell = pkgs.mkShell {
     name = "nix-dabei";
     packages = [
       pkgs.nix-tree
+      configure-ssh-key
     ];
   };
 
@@ -121,7 +153,66 @@ let
         '';
       };
     };
-  };
+
+    openssh = {
+      boot.initrd.network.ssh = {
+        enable = true;
+        ignoreEmptyHostKeys = true;
+        authorizedKeys = [ "" ];
+      };
+
+      boot.initrd.systemd = {
+        contents."/etc/terminfo".source = "${pkgs.ncurses}/share/terminfo";
+        contents."/etc/profile".text = ''
+          export TERM=linux
+          export PS1="$ "
+        '';
+
+      # see https://github.com/systemd/systemd/blob/7524671f74c9b0ea858a077ae9b1af3fe574d57e/tmpfiles.d/provision.conf#L19
+      # note that we are provisioning to /etc/ssh/authorized_keys.d instead of /root/.ssh/authorized_keys, as roots $HOME
+      # is /var/empty in the initrd, so it wouldn't get expanded correctly.
+        tmpfiles.settings.root-ssh-keys = {
+          "/etc/ssh/authorized_keys.d"."d=" = {
+            mode = "0700";
+            user = "root";
+            group = "root";
+          };
+          "/etc/ssh/authorized_keys.d/root"."f^=" = {
+            mode = "0600";
+            user = "root";
+            group = "root";
+            argument = "ssh.authorized_keys.root";
+          };
+        };
+
+        # Generate host keys during boot
+        extraBin.ssh-keygen = "${pkgs.openssh}/bin/ssh-keygen";
+        services.generate-ssh-hostkeys = {
+          description = "Generate SSH host keys";
+          wantedBy = [ "sshd.service" ];
+          before = [ "sshd.service" ];
+          wants = [ "systemd-udevd.service" ];
+          after = [ "systemd-udevd.service" ];
+
+          unitConfig = {
+            DefaultDependencies = false;
+            ConditionPathExists = "!/etc/ssh/ssh_host_ed25519_key";
+          };
+
+          serviceConfig = {
+            Type = "oneshot";
+            RemainAfterExit = true;
+          };
+
+          script = ''
+            ssh-keygen -t ed25519 -N "" -f /etc/ssh/ssh_host_ed25519_key -C "initrd host key"
+          echo "Generated initrd SSH host key:"
+          ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub
+          '';
+        };
+      };
+    };
+
     all-hardware = {
       hardware.enableRedistributableFirmware = true;
 
@@ -241,6 +332,7 @@ let
       modules.debug
       modules.network
       modules.nix
+      modules.openssh
       modules.all-hardware
       modules.zfs
       modules.image
