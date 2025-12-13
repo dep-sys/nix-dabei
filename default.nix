@@ -73,6 +73,15 @@ let
         graphics = false;
         fileSystems = lib.mkForce {};
         diskImage = lib.mkForce null;
+
+        forwardPorts = [
+          {
+            from = "host";
+            guest.port = 22;
+            host.port = 2222;
+          }
+      ];
+
       };
     };
 
