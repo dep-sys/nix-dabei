@@ -331,6 +331,37 @@ let
           };
         };
       };
+
+      kexec = {config, pkgs, ...}: {
+        system.build.kexecScript = pkgs.writeScript "kexec-boot" ''
+          #!/usr/bin/env bash
+          if ! kexec -v >/dev/null 2>&1; then
+            echo "kexec not found: please install kexec-tools" 2>&1
+            exit 1
+          fi
+          SCRIPT_DIR=$( cd -- "$( dirname -- "''${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+          kexec --load ''${SCRIPT_DIR}/bzImage \
+            --initrd=''${SCRIPT_DIR}/initrd.gz \
+            --command-line "init=${config.system.build.toplevel}/init ${toString config.boot.kernelParams}"
+          kexec -e
+        '';
+
+        # A tree containing initrd.gz, bzImage and a kexec-boot script.
+        system.build.kexecTree = pkgs.linkFarm "kexec-tree" [
+          {
+            name = "initrd.gz";
+            path = "${config.system.build.initialRamdisk}/initrd";
+          }
+          {
+            name = "bzImage";
+            path = "${config.system.build.kernel}/${config.system.boot.loader.kernelFile}";
+          }
+          {
+            name = "kexec-boot";
+            path = config.system.build.kexecScript;
+          }
+        ];
+      };
     };
 
   nixos = pkgs.nixos {
@@ -345,13 +376,14 @@ let
       modules.all-hardware
       modules.zfs
       modules.image
+      modules.kexec
     ];
   };
 
-  inherit (nixos) vm uki image;
+  inherit (nixos) vm uki image kexecTree;
 
 
 in
   {
-    inherit shell nixos image vm uki pkgs lib;
+    inherit shell nixos image vm uki kexecTree pkgs lib;
   }
