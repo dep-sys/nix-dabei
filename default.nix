@@ -225,6 +225,12 @@ let
     all-hardware = {
       hardware.enableRedistributableFirmware = true;
 
+      boot.kernelParams = [
+        "console=hvc0"
+        "console=ttyS0,115200"
+        "console=tty0"
+      ];
+
       boot.initrd.availableKernelModules = [
         # NVMe & SATA/AHCI
         "nvme" "ahci" "sd_mod" "sr_mod"
@@ -273,6 +279,9 @@ let
 
         # Graphics (basic display)
         # "i915" "amdgpu" "nouveau" "fbcon" "vesafb" "efifb"
+
+        # Paravirtual consoles
+        "hvc_xen" "virtio_console"
 
         # Intel Wireless
         # "iwlwifi" "iwlmvm"
